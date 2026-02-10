@@ -122,3 +122,65 @@ int main() {
 ```
 ### Homework 0 Exercise
 - See `homework0.cc`
+# Chapter 2
+## Not all bytes are 8 bits?
+### Not all bytes are 8 bits? Exercise
+```cpp
+#include <cstdio>
+#include <climits>
+
+int main() {
+  std::printf("Largest value you can store in a short is: %d\n", SHRT_MAX);
+  std::printf("Largest value you can store in a long is: %ld\n", LONG_MAX);
+  std::printf("There are %d bytes in a short\n", sizeof(short));
+  std::printf("There are %d bytes in a long\n", sizeof(long));
+  std::printf("There are %d bytes in a float\n", sizeof(float));
+  std::printf("There are %d bytes in a double\n", sizeof(double));
+  return 0;
+}
+```
+## Follow the int pointer
+### Follow the int pointer Exercise
+```cpp
+#include <cstdio>
+
+int main() {
+  int data[5] = {10, 30, 60, 50, 40};
+  for (int i{}; i < 5; i++) {
+    std::printf("%d, ", *(data + i));
+  }
+  printf("\n");
+  data[0] = data[0] + data[4];
+  data[4] = data[0] - data[4];
+  data[0] = data[0] - data[4];
+  for (int i{}; i < 5; i++) {
+    std::printf("%d, ", *(data + i));
+  }
+  printf("\n");
+  return 0;
+}
+```
+## sizeof character arrays, incrementing pointers
+- Machine code is readonly along with constant literals.
+### sizeof character arrays, incrementing pointers - Exercise
+```cpp
+#include <cstdio>
+
+int main() {
+  char *ptr = "ABC0123";
+  while (*ptr != '\0') {
+    std::printf("%c %d\n", *ptr, *ptr);
+    ptr++;
+  }
+  char *start_ptr = "dlroW elloH";
+  char *end_ptr = start_ptr;
+  while (*end_ptr != '\0') {
+    end_ptr++;
+  }
+  while (end_ptr >= start_ptr) {
+    std::printf("%c", *end_ptr--);
+  }
+  std::printf("\n");
+  return 0;
+}
+```
