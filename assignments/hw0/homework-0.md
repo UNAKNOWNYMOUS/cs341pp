@@ -184,3 +184,13 @@ int main() {
   return 0;
 }
 ```
+# Chapter 3
+## Program arguments argc argv
+## Environment Variables
+## String searching (Strings are just char arrays)
+## Lifetime of automatic variables
+# Chapter 4
+## Malloc, heap and time
+## Heap allocation Gotchas
+## struct, typedefs and a linked list
+## Duplicating strings, memory allocation and deallocation of structures
