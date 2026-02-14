@@ -194,3 +194,10 @@ int main() {
 ## Heap allocation Gotchas
 ## struct, typedefs and a linked list
 ## Duplicating strings, memory allocation and deallocation of structures
+# Chapter 5
+## Reading characters, Trouble with gets
+## Introducing sscanf and friends
+## getline is useful
+# Chapter 6
+## Introducing signals and forks
+## Introducing fork and waitpid

@@ -3,20 +3,21 @@
 #include <cstring>
 #include <fcntl.h>
 #include <iostream>
+#include <string>
 #include <unistd.h>
 
 using std::cout;
 using std::endl;
 
-typedef struct Person Person;
-
-struct Person {
-  char *name;
-  int age;
-  Person **friends;
-  size_t num_friends;
-  size_t cap_friends;
-};
+// typedef struct Person Person;
+//
+// struct Person {
+//   char *name;
+//   int age;
+//   Person **friends;
+//   size_t num_friends;
+//   size_t cap_friends;
+// };
 
 void homework_0_1_1();
 void homework_0_1_2();
@@ -27,7 +28,8 @@ void homework_0_1_5();
 void homework_0_chapter2();
 void homework_0_chapter3();
 void homework_0_chapter4();
-Person *create(int age, char *name);
+void homework_0_chapter5();
+// Person *create(int age, char *name);
 void destroy();
 
 int main() {
@@ -346,31 +348,85 @@ void homework_0_chapter4() {
        << endl;
 }
 
-Person *create(int age, const char *name) {
-  Person *new_person = (Person *)malloc(sizeof(Person));
-  if (!new_person) {
-    exit(1);
-  }
-  new_person->age = age;
-  new_person->name = (char *)malloc(strlen(name) + 1);
-  if (!new_person->name) {
-    exit(1);
-  }
-  strcpy(new_person->name, name);
-  new_person->num_friends = 0;
-  new_person->friends = (Person **)malloc(sizeof(Person *) * 10);
-  if (!new_person->friends) {
-    exit(1);
-  }
-  return new_person;
+/* Homework 0, Chapter 5 */
+void homework_0_chapter5() {
+  cout << endl;
+  cout << "====================       Homework 0, Chapter 4       "
+          "==================== "
+       << endl;
+  cout << "Text input and output and parsing using 'getchar', 'gets', and "
+          "'getline'."
+       << endl;
+
+  /* Question 1 */
+  cout << "1. What functions can be used for getting characters from 'stdin' "
+          "and writing them to ''stdout"
+       << endl;
+  cout << "A: printf, cout, fscanf, sscanf, scanf, getline, getchar, putchar, "
+          "puts"
+       << endl;
+
+  /* Question 2 */
+  cout << "2. Name one issue with 'gets()'." << endl;
+  cout << "Buffer overflow - no check" << endl;
+
+  /* Question 3 */
+  // use sscanf
+
+  /* Question 4 */
+  // GNU SOURCE predirective
 }
 
-void destroy(Person **person) {
-  free((*person)->name);
-  free((*person)->friends);
-  free((*person));
-  *person = nullptr;
-}
+class Person {
+public:
+  Person(int age = 0, std::string name = "None", Person **friends = nullptr,
+         size_t num_friends = 0, size_t cap_friends = 10)
+      : age{age}, name{name}, num_friends{num_friends},
+        cap_friends{cap_friends} {
+    friends = new Person *[cap_friends];
+  }
+  ~Person() { delete[] friends; }
+  Person **friends;
+  size_t num_friends;
 
-Person *agent_s = create(128, "Agent Smith");
-Person *sonny_m = create(256, "Sonny Moore");
+private:
+  int age;
+  std::string name;
+  size_t cap_friends;
+};
+
+Person *agent_s = new Person(128, "Agent Smith");
+Person *sonny_m = new Person(256, "Sonny Moore");
+// agent_s->friends[num_friends++] = sonny_m;
+// sonny_m->friends[num_firends++] = agent_s;
+
+// Person *create(int age, const char *name) {
+//   Person *new_person = (Person *)malloc(sizeof(Person));
+//   if (!new_person) {
+//     exit(1);
+//   }
+//   new_person->age = age;
+//   new_person->name = (char *)malloc(strlen(name) + 1);
+//   if (!new_person->name) {
+//     exit(1);
+//   }
+//   strcpy(new_person->name, name);
+//   new_person->num_friends = 0;
+//   new_person->cap_friends = 10;
+//   new_person->friends = (Person **)malloc(sizeof(Person *) *
+//   new_person->cap_friends); memset(new_person->friends, 0, sizeof(Person *) *
+//   new_person->cap_friends); if (!new_person->friends) {
+//     exit(1);
+//   }
+//   return new_person;
+// }
+//
+// void destroy(Person **person) {
+//   free((*person)->name);
+//   free((*person)->friends);
+//   free((*person));
+//   *person = nullptr;
+// }
+//
+// Person *agent_s = create(128, "Agent Smith");
+// Person *sonny_m = create(256, "Sonny Moore");
