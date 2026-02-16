@@ -9,16 +9,7 @@
 using std::cout;
 using std::endl;
 
-// typedef struct Person Person;
-//
-// struct Person {
-//   char *name;
-//   int age;
-//   Person **friends;
-//   size_t num_friends;
-//   size_t cap_friends;
-// };
-
+void output_section(int chapter, int homework = 0, int exercise = 0);
 void homework_0_1_1();
 void homework_0_1_2();
 void write_triangle(int n);
@@ -29,7 +20,6 @@ void homework_0_chapter2();
 void homework_0_chapter3();
 void homework_0_chapter4();
 void homework_0_chapter5();
-// Person *create(int age, char *name);
 void destroy();
 
 int main() {
@@ -45,13 +35,17 @@ int main() {
   return 0;
 }
 
+void output_section(int chapter, int homework, int exercise) {
+  cout << endl;
+  cout << "==================== Homework " << homework << ", Chapter "
+       << chapter
+       << (exercise != 0 ? ", Exercise " + std::to_string(exercise) : "")
+       << "==================== " << endl;
+}
+
 /* Homework 0, Chapter 1, Exercise 1 */
 void homework_0_1_1() {
-  cout << endl;
-  cout << "==================== Homework 0, Chapter 1, Exercise 1 "
-          "==================== "
-       << endl;
-
+  output_section(1, 0, 1);
   cout << "Hello, World! (system call style) Write a program that uses "
           "'write()' to print out 'Hi! My name is <Your Name>'."
        << endl;
@@ -61,10 +55,7 @@ void homework_0_1_1() {
 
 /* Homework 0, Chapter 1, Exercise 2 */
 void homework_0_1_2() {
-  cout << endl;
-  cout << "==================== Homework 0, Chapter 1, Exercise 2 "
-          "==================== "
-       << endl;
+  output_section(1, 0, 2);
 
   cout << "Hello, Standard Error Stream! Write a function to print out a "
           "triangle of height 'n' to standard error. Your function should have "
@@ -85,10 +76,7 @@ void write_triangle(int n) {
 
 /* Homework 0, Chapter 1, Exercise 3 */
 void homework_0_1_3() {
-  cout << endl;
-  cout << "==================== Homework 0, Chapter 1, Exercise 3 "
-          "==================== "
-       << endl;
+  output_section(1, 0, 3);
 
   cout << "Writing to files Take your program from 'Hello, World!' modify it "
           "write to a file called 'hello_world.txt'. Make sure to use correct "
@@ -103,10 +91,7 @@ void homework_0_1_3() {
 
 /* Homework 0, Chapter 1, Exercise 4 */
 void homework_0_1_4() {
-  cout << endl;
-  cout << "==================== Homework 0, Chapter 1, Exercise 3 "
-          "==================== "
-       << endl;
+  output_section(1, 0, 4);
 
   cout << "Not everything is a system call Take your program from "
           "'Writing to files' and replace 'write()' with 'printf()'. Make "
@@ -124,10 +109,7 @@ void homework_0_1_4() {
 
 /* Homework 0, Chapter 1, Exercise 5 */
 void homework_0_1_5() {
-  cout << endl;
-  cout << "==================== Homework 0, Chapter 1, Exercise 5 "
-          "==================== "
-       << endl;
+  output_section(1, 0, 5);
 
   cout << "What are some differences between 'write()' and 'printf()'" << endl;
   cout << "A: The difference between 'write()' and 'printf()' is as "
@@ -146,10 +128,8 @@ void homework_0_1_5() {
 
 /* Homework 0, Chapter 2 */
 void homework_0_chapter2() {
-  cout << endl;
-  cout << "====================       Homework 0, Chapter 2       "
-          "==================== "
-       << endl;
+  output_section(2);
+
   cout << "Sizing up C types and their limits, 'int' and 'char' arrays, and "
           "incrementing pointers"
        << endl;
@@ -379,12 +359,8 @@ void homework_0_chapter5() {
 
 class Person {
 public:
-  Person(int age = 0, std::string name = "None", Person **friends = nullptr,
-         size_t num_friends = 0, size_t cap_friends = 10)
-      : age{age}, name{name}, num_friends{num_friends},
-        cap_friends{cap_friends} {
-    friends = new Person *[cap_friends];
-  }
+  Person(int age = 0, std::string name = "None", size_t num_friends = 0,
+         size_t cap_friends = 10, Person **friends = nullptr);
   ~Person() { delete[] friends; }
   Person **friends;
   size_t num_friends;
@@ -395,8 +371,24 @@ private:
   size_t cap_friends;
 };
 
-Person *agent_s = new Person(128, "Agent Smith");
+Person::Person(int age, std::string name, size_t num_friends,
+               size_t cap_friends, Person **friends)
+
+    Person *agent_s = new Person(128, "Agent Smith");
 Person *sonny_m = new Person(256, "Sonny Moore");
+
+// typedef struct Person Person;
+//
+// struct Person {
+//   char *name;
+//   int age;
+//   Person **friends;
+//   size_t num_friends;
+//   size_t cap_friends;
+// };
+
+// Person *create(int age, char *name);
+
 // agent_s->friends[num_friends++] = sonny_m;
 // sonny_m->friends[num_firends++] = agent_s;
 
