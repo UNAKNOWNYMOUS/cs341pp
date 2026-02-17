@@ -35,6 +35,7 @@ int main() {
   return 0;
 }
 
+/* Output section for each part of homework */
 void output_section(int chapter, int homework, int exercise) {
   cout << endl;
   cout << "==================== Homework " << homework << ", Chapter "
@@ -68,9 +69,9 @@ void homework_0_1_2() {
 void write_triangle(int n) {
   for (int i{}; i < n; i++) {
     for (int j{i}; j >= 0; j--) {
-      write(1, "*", 1);
+      write(2, "*", 1);
     }
-    write(1, "\n", 1);
+    write(2, "\n", 1);
   }
 }
 
@@ -85,7 +86,7 @@ void homework_0_1_3() {
 
   mode_t mode = S_IRUSR | S_IWUSR;
   int my_fd = open("hello_world.txt", O_CREAT | O_TRUNC | O_RDWR, mode);
-  write(my_fd, "Hello, World!1\n", 14);
+  write(my_fd, "Hello, World!\n", 14);
   close(my_fd);
 }
 
@@ -98,7 +99,7 @@ void homework_0_1_4() {
           "sure to print to the file instead of standard out!"
        << endl;
 
-  // close(1);
+  close(1);
   int my_fd =
       open("hello_world.txt", O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
   std::printf("Hello, World!2\n");
@@ -219,7 +220,8 @@ void homework_0_chapter3() {
   cout << "Where are the pointers to enviornment variables stored (on the "
           "stack, the heap, somewhere else)?"
        << endl;
-  cout << "A: The stack" << endl;
+  cout << "A: The stack, around where to coammnd line arguments are stored."
+       << endl;
 
   /* Question 4 */
   cout
@@ -326,6 +328,46 @@ void homework_0_chapter4() {
           "with each other. Create functions to create and destroy a Person "
           "(Person's and their names should live on the heap)."
        << endl;
+
+  /* Question 12 */
+  cout << "'create()' should take a name and age. The name should be copied "
+          "onto the heap. Use malloc to reserve sufficient memory for everyone "
+          "having up to ten friends. Be sure initialize all fields (why?)."
+       << endl;
+
+  /* Question 13 */
+  cout << "'destroy()' should free up both the memory of the person struct and "
+          "all of its attributes that are stored on the heap. Destroying one "
+          "person keeps other people in tact any other."
+       << endl;
+
+  class Person {
+  public:
+    Person(std::string name = "None", int age = 0, int friend_count = 0,
+           int friend_cap = 10)
+        : name{name}, age{age}, friend_count{friend_count},
+          friend_cap{friend_cap} {
+      friends = new Person *[friend_cap] {};
+    }
+    Person(const Person &source)
+        : Person{source.name, source.age, source.friend_count,
+                 source.friend_cap} {
+      for (int i{0}; i < source.friend_cap; i++) {
+        this->friends[i] = source.friends[i];
+      }
+    }
+    ~Person() { delete[] friends; }
+
+  private:
+    std::string name;
+    int age;
+    int friend_count;
+    int friend_cap;
+    Person **friends;
+  };
+
+  Person agent_s = Person("Agent Smith", 128);
+  Person sonny_m = Person("Sonny Moore", 256);
 }
 
 /* Homework 0, Chapter 5 */
@@ -356,26 +398,6 @@ void homework_0_chapter5() {
   /* Question 4 */
   // GNU SOURCE predirective
 }
-
-class Person {
-public:
-  Person(int age = 0, std::string name = "None", size_t num_friends = 0,
-         size_t cap_friends = 10, Person **friends = nullptr);
-  ~Person() { delete[] friends; }
-  Person **friends;
-  size_t num_friends;
-
-private:
-  int age;
-  std::string name;
-  size_t cap_friends;
-};
-
-Person::Person(int age, std::string name, size_t num_friends,
-               size_t cap_friends, Person **friends)
-
-    Person *agent_s = new Person(128, "Agent Smith");
-Person *sonny_m = new Person(256, "Sonny Moore");
 
 // typedef struct Person Person;
 //

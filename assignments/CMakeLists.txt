@@ -1,0 +1,2 @@
+add_subdirectory(lab1_debugging_bootcamp)
+add_subdirectory(lab1_debugging_bootcamp2)
