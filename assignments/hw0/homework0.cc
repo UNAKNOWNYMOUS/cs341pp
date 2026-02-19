@@ -1,6 +1,4 @@
-#include <cstddef>
 #include <cstdio>
-#include <cstring>
 #include <fcntl.h>
 #include <iostream>
 #include <string>
@@ -99,10 +97,11 @@ void homework_0_1_4() {
           "sure to print to the file instead of standard out!"
        << endl;
 
-  close(1);
+  // commented out so that I don't have to reopen - Assume this is uncommented
+  // when checking work! close(1);
   int my_fd =
       open("hello_world.txt", O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
-  std::printf("Hello, World!2\n");
+  std::printf("Hello, World!\n");
   if (my_fd != -1) {
     close(my_fd);
   }
@@ -177,7 +176,7 @@ void homework_0_chapter2() {
 
   /* Question 7 */
   cout << "7. What is the value of the variable 'str_size'?" << endl;
-  cout << "ssize_t str_size = sizeof(\"Hello\0World\");";
+  cout << "ssize_t str_size = sizeof(\"Hello\\0World\");";
   cout << "A: 12 bytes" << endl;
 
   /* Question 8 */
@@ -228,7 +227,7 @@ void homework_0_chapter3() {
       << "On a machine where pointers are 8 bytes, and with the following code:"
       << endl;
   cout << "char *ptr = \"Hello\";\nchar array[] = \"Hello\";" << endl;
-  cout << "What are the values of 'sizeof(ptr)' and 'sizeof(aray)'? Why?"
+  cout << "What are the values of 'sizeof(ptr)' and 'sizeof(array)'? Why?"
        << endl;
   cout << "A: 8 bytes on 64-bit systems and 6 bytes. Because for the first one "
           "takes the sizeof a pointer and the second one takes the sizeof the "
@@ -308,7 +307,7 @@ void homework_0_chapter4() {
   cout << "What is wrong with this code snippet?" << endl;
   cout << "free(ptr);" << endl;
   cout << "printf(\"%s\n\", ptr);" << endl;
-  cout << "A: Use after freed" << endl;
+  cout << "A: Use after free" << endl;
 
   /* Question 9 */
   cout << "9. How can one avoid the previous two mistakes?" << endl;
@@ -391,12 +390,6 @@ void homework_0_chapter5() {
   /* Question 2 */
   cout << "2. Name one issue with 'gets()'." << endl;
   cout << "Buffer overflow - no check" << endl;
-
-  /* Question 3 */
-  // use sscanf
-
-  /* Question 4 */
-  // GNU SOURCE predirective
 }
 
 // typedef struct Person Person;

@@ -1,2 +1,2 @@
-add_subdirectory(lab1_debugging_bootcamp)
-add_subdirectory(lab1_debugging_bootcamp2)
+#add_subdirectory(lab1_debugging_bootcamp)
+add_subdirectory(mp1_extreme_edge_cases)
