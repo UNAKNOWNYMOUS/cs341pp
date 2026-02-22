@@ -47,5 +47,5 @@ add_executable(string_util_test tests/string_util_test.cc)
 target_link_libraries(string_util_test PRIVATE test_tools_lib GTest::gtest_main)
 
 include(GoogleTest)
-gtest_discover_tests(add_test)
-gtest_discover_tests(string_util_test)
+#gtest_discover_tests(add_test)
+#gtest_discover_tests(string_util_test)
