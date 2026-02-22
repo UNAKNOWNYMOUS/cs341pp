@@ -64,5 +64,128 @@ tags: []
 ### C System Calls
 ## Common C Functions
 ### Handling Errors
+- Most functions in C handle errors return oriented.
+  - This is at odds with programming languages like C++ or Java where the errors are handled with exceptions.
+- There are a number of arguments against exceptions:
+  - Exceptions make control flow harder to understand.
+  - Exception oriented languages need to keep stack traces and maintain jump tables.
+  - Exceptions may be complex objects.
+- There are a few arguments for exceptions as well:
+  - Exceptions can come from several layers deep.
+  - Exceptions help reduce global state.
+  - Exceptions differentiate business logic and normal flow.
 ### Input / Output
 - Every process has three streams of data when it starts execution: standard input, standard output, standard error.
+- They're file descriptors are 0, 1, 2 respectively.
+- 2 is reserved for standard error which by library convention is unbuffered (i.e. IO operations are performed immediately).
+- ISO defines three types of stream:
+  - Unbuffered, where the contents of the stream reach their destination as soon as possible.
+  - Line Buffered, where the contents of the stream reach their destination as soon as a newline is provided.
+  - Fully Buffered, where the contents of the stream reach their destination as soon as the buffer is full.
+- One can force a write by calling `fflush()` on the stream.
+### stdin oriented functions
+### string.h
+## C Memory Model
+### Structs
+### Strings in C
+### Places for strings
+## Pointers
+### Pointer Basics
+### Pointer Arithmetic
+### So what is a void pointer?
+## Common Bugs
+### Nul Bytes
+### Double Frees
+### Returning pointers to automatic variables
+### Insufficient memory allocation
+### Buffer overflow/underflow
+### Strings require strlen(s)+1 bytes
+### Using uninitialized variables
+### Assuming Uninitialized memory will be zeroed
+## Logic and Program flow mistakes
+### Equal vs. Equality
+### Undeclared or incorrectly prototyped functions
+### Extra Semicolons
+## Topics
+## Questions/Exercises
+- What does the following print out?
+```cpp
+int main() {
+  fprintf(stderr, "Hello ");
+  fprintf(stdout, "It's a small ");
+  fprintf(stderr, "World\n");
+  fprintf(stdout, "place");
+  return 0;
+}
+
+// Hello World
+// It's a small place
+// because of the type of stream (different buffering style)
+```
+- What are the differences between the following two declarations? What does `sizeof` return for one of them?
+```cpp
+char str1[] = "first one";
+char *str2 = "another one";
+
+// The first one is stored on the stack
+// The second one, the string literal is located in the readonly part of the data section which results.
+// size of first one is the length of string + null character and for the second one it is the size in bytes of a pointer on that machines architecture.
+```
+- What is a string in C?
+- A: A series/string of characters that are terminated by a null character.
+- Code up a simple `my_strcmp`. How about `my_strcat`, `my_strcpy`, or `my_strdup`? Bonus: Code the functions while only going through the strings once.
+- What should each of the following lines usually return?
+```cpp
+int *ptr;
+sizeof(ptr); // Size of pointer
+sizeof(*ptr); // Size of integer
+```
+- What is `malloc`? How is it different from `calloc`. Once memory is allocated how can we use `realloc`?
+- What is the `&` operator? How about `*`?
+  - `&` address of operator or reference type. `*` to declare and dereference operators.
+- Pointer Arithmetic. Assume the following addresses. What are the following shifts?
+```cpp
+char **ptr = malloc(10); //0x100
+ptr[0] = malloc(20); // 0x200
+ptr[1] = malloc(20); // 0x300
+
+// ptr + 2 is plus 16 bytes == 0x110
+// ptr +4 is plus 32 bytes == 0x120
+// ptr[0] + 4 is 4 bytes == 0x204
+// ptr[1] + 2000 is 2000 * 1 == 0x700
+// *((int) (ptr + 1)) + 3 == ptr + 8 - typecast to integer - derefernce it and add 3 == 0x303
+```
+- How do we prevent double free errors?
+  - A: set pointer to null.
+- What is the printf specifier to print a string, `int`, or `char`?
+  - A: `%s`, `%d`, `%c`.
+- Is the following code valid? Why? Where is `output` located?
+```cpp
+char *foo(int var) {
+  static char output[20];
+  snprintf(output, 20, "%d", var);
+  return output;
+}
+
+// Yes variable is static and is stored in data segment, lifespan is lifetime of the program
+// The memory for output is located in the BSS or Data Segment
+```
+- Write a function that accepts a path as a string, and opens that file, prints the file contents 40 bytes at a time but, every other print reverses the string (try using the POSIX API for this).
+- What are some differences between the POSIX file descriptor model and C's `FILE*` (i.e. what function calls are used and which is buffered)? Does POSIX use C's `FILE*` internally or vice versa?
+## Rapid Fire: Pointer Arithmetic
+```cpp
+int *int_; // sizeof(int) == 4;
+long *long_; // sizeof(long) == 8;
+char *char_;
+int *short_; // sizeof(short) == 2;
+int **int_ptr; // sizeof(int *) == 8;
+
+// How many bytes are moved over from the following additions?
+// 1. int_1 + 1 == 4
+// 2. long_ + 7 == 56
+// 3. short_- 6 == 12 or -12
+// 4. short_ - sizeof(long) == 16 or -16
+// 5. long_ - sizeof(long) + sizeof(int_) == 0
+// 6. long_ - sizeof(long) / sizeof(int) == -16
+// 7. (char*)(int_ptr + sizeof(long)) + sizeof(int_) == +64 then 8
+```

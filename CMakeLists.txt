@@ -15,5 +15,5 @@ include(CTest)
 enable_testing()
 
 # Build the playground
-#add_subdirectory(testing_tools)
+add_subdirectory(testing_tools)
 add_subdirectory(assignments)
