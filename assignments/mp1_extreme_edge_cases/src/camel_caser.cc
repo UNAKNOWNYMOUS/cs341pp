@@ -27,7 +27,14 @@ char **camel_caser(const char *input) {
   return out;
 }
 
-void destroy(char **result) { free(result); }
+void destroy(char **result) {
+  if (result != nullptr) {
+    for (size_t i{0}; result[i] != nullptr; ++i) {
+      free(result[i]);
+    }
+    free(result);
+  }
+}
 
 bool IsSentenceTerminator(unsigned char c) {
   if (std::ispunct(c))
@@ -55,7 +62,7 @@ std::vector<std::string> SplitIntoSentences(const char *input) {
     if (IsSentenceTerminator(static_cast<unsigned char>(*p))) {
 
       current_sentence.push_back(*p);
-      sentences.push_back(current_sentence);
+      sentences.push_back(CamelCaseSentence(current_sentence));
       current_sentence.clear();
     } else {
       current_sentence.push_back(*p);
@@ -103,7 +110,7 @@ std::string CamelCaseSentence(std::string_view sentence) {
 }
 
 char *DupCString(const std::string &s) {
-  // TODO: free c_string
+  // TODO: free each c_string
   char *c_string = static_cast<char *>(std::malloc(s.length() + 1));
 
   std::strcpy(c_string, s.c_str());
@@ -113,10 +120,14 @@ char *DupCString(const std::string &s) {
 
 char **BuildResultArray(const std::vector<std::string> &outputs) {
   // TODO: free result
-  char **result = static_cast<char **>(std::malloc(outputs.size() + 1));
+  char **result =
+      static_cast<char **>(std::malloc((outputs.size() + 1) * sizeof(outputs)));
 
-  for (size_t i{}; i < outputs.size(); ++i) {
-    result[i] = DupCString(outputs[i]);
+  for (size_t i{}; i <= outputs.size(); ++i) {
+    if (i == outputs.size())
+      result[i] = nullptr;
+    else
+      result[i] = DupCString(outputs[i]);
   }
 
   return result;

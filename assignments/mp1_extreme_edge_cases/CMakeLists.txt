@@ -31,5 +31,5 @@ if (MP1_ENABLE_SANITIZERS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 include(GoogleTest)
-# gtest_discover_tests(mp1_tests)
-gtest_discover_tests(mp1_detail_tests)
+#gtest_discover_tests(mp1_detail_tests)
+gtest_discover_tests(mp1_tests)
