@@ -1,3 +1,4 @@
 #add_subdirectory(lab1_debugging_bootcamp)
 #add_subdirectory(mp1_extreme_edge_cases)
-add_subdirectory(lab2_pointer_clinic)
+#add_subdirectory(lab2_pointer_clinic)
+add_subdirectory(mp2_vector_sstring)
