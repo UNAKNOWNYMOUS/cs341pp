@@ -10,10 +10,14 @@ namespace cs341pp::mp2 {
 
 template <typename T> class Vector {
 public:
+  /* Using default no args constructor */
   Vector() = default;
+  /* Destructor */
   ~Vector() { ClearAndFree_(); }
 
+  /* Copy Constructor */
   Vector(const Vector &other) { CopyFrom_(other); }
+  /* Copy Assignment Operator */
   Vector &operator=(const Vector &other) {
     if (this != &other) {
       ClearAndFree_();
@@ -22,7 +26,9 @@ public:
     return *this;
   }
 
+  /* Move Constructor */
   Vector(Vector &&other) noexcept { MoveFrom_(std::move(other)); }
+  /* Move assignment operator */
   Vector &operator=(Vector &&other) noexcept {
     if (this != &other) {
       ClearAndFree_();
@@ -31,11 +37,16 @@ public:
     return *this;
   }
 
+  /* getter: size */
   std::size_t size() const { return size_; }
+  /* getter: capacity */
   std::size_t capacity() const { return capacity_; }
+  /* determines if vector is empty */
   bool empty() const { return size_ == 0; }
 
+  /* Subscripting operator */
   T &operator[](std::size_t i) { return data_[i]; }
+  /* readonly */
   const T &operator[](std::size_t i) const { return data_[i]; }
 
   T &at(std::size_t i) {
@@ -74,12 +85,23 @@ private:
   static constexpr std::size_t kInitialCapacity = 8;
 
   template <typename U> void PushBackImpl_(U &&value) {
-    // TODO
-    (void)value;
+    if (capacity_ == 0) {
+      capacity_ = kInitialCapacity;
+      data_ = alloc_.allocate(capacity_);
+    }
+    std::allocator_traits<std::allocator<T>>::construct(alloc_, data_ + size_,
+                                                        std::forward<U>(value));
+    ++size_;
   }
 
   void ClearAndFree_() {
-    // TODO
+    for (std::size_t i{}; i < size_; ++i) {
+      std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
+    }
+    alloc_.deallocate(data_, capacity_);
+    data_ = nullptr;
+    size_ = 0;
+    capacity_ = 0;
   }
 
   void CopyFrom_(const Vector &other) {
