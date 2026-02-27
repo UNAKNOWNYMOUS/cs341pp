@@ -85,13 +85,31 @@ private:
   static constexpr std::size_t kInitialCapacity = 8;
 
   template <typename U> void PushBackImpl_(U &&value) {
-    if (capacity_ == 0) {
-      capacity_ = kInitialCapacity;
-      data_ = alloc_.allocate(capacity_);
-    }
-    std::allocator_traits<std::allocator<T>>::construct(alloc_, data_ + size_,
-                                                        std::forward<U>(value));
-    ++size_;
+    //     if (capacity_ == 0) {
+    //       capacity_ = kInitialCapacity;
+    //       data_ = alloc_.allocate(capacity_);
+    //     } else if (size_ == capacity_) {
+    //       capacity_ *= 2;
+    //       T *new_data_ = alloc_.allocate(capacity_);
+    //       for (std::size_t i{}; i < size_; ++i) {
+    //         std::allocator_traits<std::allocator<T>>::construct(
+    //             alloc_, new_data_ + i, std::move(data_ + i));
+    //       }
+    //
+    //       for (std::size_t i{}; i < size_; ++i) {
+    //         std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ +
+    //         i);
+    //       }
+    //
+    //       if (data_ != nullptr) {
+    //         alloc_.deallocate(data_, size_);
+    //       }
+    //       data_ = new_data_;
+    //     }
+    //     std::allocator_traits<std::allocator<T>>::construct(alloc_, data_ +
+    //     size_,
+    //                                                         std::forward<U>(value));
+    //     ++size_;
   }
 
   void ClearAndFree_() {
