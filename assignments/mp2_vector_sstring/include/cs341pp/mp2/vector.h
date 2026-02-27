@@ -66,10 +66,7 @@ public:
   void push_back(const T &value) { PushBackImpl_(value); }
   void push_back(T &&value) { PushBackImpl_(std::move(value)); }
 
-  void pop_back() {
-    assert(size_ > 0);
-    // TODO
-  }
+  void pop_back() { assert(size_ > 0); }
 
   void clear() { /* TODO */ }
 
@@ -85,41 +82,36 @@ private:
   static constexpr std::size_t kInitialCapacity = 8;
 
   template <typename U> void PushBackImpl_(U &&value) {
-    //     if (capacity_ == 0) {
-    //       capacity_ = kInitialCapacity;
-    //       data_ = alloc_.allocate(capacity_);
-    //     } else if (size_ == capacity_) {
-    //       capacity_ *= 2;
-    //       T *new_data_ = alloc_.allocate(capacity_);
-    //       for (std::size_t i{}; i < size_; ++i) {
-    //         std::allocator_traits<std::allocator<T>>::construct(
-    //             alloc_, new_data_ + i, std::move(data_ + i));
-    //       }
-    //
-    //       for (std::size_t i{}; i < size_; ++i) {
-    //         std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ +
-    //         i);
-    //       }
-    //
-    //       if (data_ != nullptr) {
-    //         alloc_.deallocate(data_, size_);
-    //       }
-    //       data_ = new_data_;
-    //     }
-    //     std::allocator_traits<std::allocator<T>>::construct(alloc_, data_ +
-    //     size_,
-    //                                                         std::forward<U>(value));
-    //     ++size_;
+    if (!capacity_) {
+      capacity_ = kInitialCapacity;
+      data_ = alloc_.allocate(capacity_);
+    } else if (size_ == capacity_) {
+      std::size_t new_capacity_{capacity_ * 2};
+      T *new_data_ = alloc_.allocate(new_capacity_);
+      for (std::size_t i{}; i < size_; ++i) {
+        std::allocator_traits<decltype(alloc_)>::construct(
+            alloc_, new_data_ + i, std::forward<U>(data_[i]));
+      }
+      ClearAndFree_();
+      size_ = capacity_;
+      capacity_ = new_capacity_;
+      data_ = new_data_;
+    }
+    std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + size_,
+                                                       std::move(value));
+    ++size_;
   }
 
   void ClearAndFree_() {
-    for (std::size_t i{}; i < size_; ++i) {
-      std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
+    if (data_ != nullptr) {
+      for (std::size_t i{}; i < size_; ++i) {
+        std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
+      }
+      alloc_.deallocate(data_, capacity_);
+      data_ = nullptr;
+      size_ = 0;
+      capacity_ = 0;
     }
-    alloc_.deallocate(data_, capacity_);
-    data_ = nullptr;
-    size_ = 0;
-    capacity_ = 0;
   }
 
   void CopyFrom_(const Vector &other) {
