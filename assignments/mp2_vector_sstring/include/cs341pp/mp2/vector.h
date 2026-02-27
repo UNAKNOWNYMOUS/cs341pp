@@ -66,13 +66,62 @@ public:
   void push_back(const T &value) { PushBackImpl_(value); }
   void push_back(T &&value) { PushBackImpl_(std::move(value)); }
 
-  void pop_back() { assert(size_ > 0); }
+  void pop_back() {
+    assert(size_ > 0);
+    std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + size_);
+    --size_;
+  }
 
-  void clear() { /* TODO */ }
+  void clear() {
+    for (std::size_t i{}; i < size_; ++i) {
+      std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i);
+    }
+    size_ = 0;
+  }
 
-  void reserve(std::size_t new_cap) { /* TODO */ }
+  void reserve(std::size_t new_cap) {
+    if (new_cap > capacity_) {
+      std::size_t new_capacity_{capacity_ + new_cap};
+      T *new_data_{alloc_.allocate(new_capacity_)};
+      for (std::size_t i{}; i < size_; ++i) {
+        std::allocator_traits<decltype(alloc_)>::construct(
+            alloc_, new_data_ + i, std::move(data_[i]));
+        std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i);
+      }
+      if (data_ != nullptr)
+        alloc_.deallocate(data_, capacity_);
+      data_ = new_data_;
+      capacity_ = new_capacity_;
+    }
+  }
 
-  void resize(std::size_t new_size, const T &value = T{}) { /* TODO */ }
+  void resize(std::size_t new_size, const T &value = T{}) {
+    if (new_size <= size_) {
+      for (std::size_t i{size_}; i > new_size; --i) {
+        std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i);
+      }
+      size_ = new_size;
+    } else {
+      if (new_size > capacity_) {
+        std::size_t new_capacity_{new_size * 2};
+        T *new_data_{alloc_.allocate(new_size * 2)};
+        for (std::size_t i{}; i < size_; ++i) {
+          std::allocator_traits<decltype(alloc_)>::construct(
+              alloc_, new_data_ + i, std::move(data_[i]));
+          std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i);
+        }
+        for (std::size_t i{size_}; i < new_size; ++i) {
+          std::allocator_traits<decltype(alloc_)>::construct(
+              alloc_, new_data_ + i, value);
+        }
+        if (data_ != nullptr)
+          alloc_.deallocate(data_, capacity_);
+        data_ = new_data_;
+        capacity_ = new_capacity_;
+        size_ = new_size;
+      }
+    }
+  }
 
   void insert(std::size_t index, const T &value) { /* TODO */ }
 
@@ -87,18 +136,20 @@ private:
       data_ = alloc_.allocate(capacity_);
     } else if (size_ == capacity_) {
       std::size_t new_capacity_{capacity_ * 2};
-      T *new_data_ = alloc_.allocate(new_capacity_);
+      T *new_data_{alloc_.allocate(new_capacity_)};
       for (std::size_t i{}; i < size_; ++i) {
         std::allocator_traits<decltype(alloc_)>::construct(
-            alloc_, new_data_ + i, std::forward<U>(data_[i]));
+            alloc_, new_data_ + i, std::move(data_[i]));
+        std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i);
       }
-      ClearAndFree_();
+      if (data_ != nullptr)
+        alloc_.deallocate(data_, capacity_);
       size_ = capacity_;
       capacity_ = new_capacity_;
       data_ = new_data_;
     }
     std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + size_,
-                                                       std::move(value));
+                                                       std::forward<U>(value));
     ++size_;
   }
 

@@ -183,8 +183,10 @@ TEST(Mp2Stage5, ReserveNeverShrinks) {
 
 TEST(Mp2Stage5, ReserveGrowsAndPreservesData) {
   mp2::Vector<int> v;
-  for (int i = 0; i < 10; ++i)
+  for (int i = 0; i < 10; ++i) {
+    ASSERT_EQ(v.size(), i);
     v.push_back(i);
+  }
   v.reserve(1000);
   EXPECT_GE(v.capacity(), 1000u);
   ASSERT_EQ(v.size(), 10u);
