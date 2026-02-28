@@ -300,6 +300,7 @@ TEST(Mp2Stage11, SplitKeepsEmptyFields) {
 // -------------------- Stage 12: Slice --------------------
 TEST(Mp2Stage12, SliceEndExclusive) {
   mp2::SString s("Hello World!");
+  EXPECT_EQ(s.size(), 12u);
   EXPECT_EQ(s.Slice(0, 5), "Hello");
   EXPECT_EQ(s.Slice(6, 11), "World");
   EXPECT_EQ(s.Slice(11, 12), "!");

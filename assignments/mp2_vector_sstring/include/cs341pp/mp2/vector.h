@@ -128,47 +128,34 @@ public:
   }
 
   void insert(std::size_t index, const T &value) {
-    if (!capacity_) {
-      push_back(value);
-      return;
-    }
+    EnsureCapacityFor_(size_ + 1);
     assert(index <= size_);
-    if (size_ + 1 <= capacity_) {
-      for (std::size_t i{size_}; i > index; --i) {
-        std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + i,
-                                                           std::move(data_[i]));
-        std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i);
-      }
-      std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + index,
-                                                         value);
-      ++size_;
+    for (std::size_t i{size_}; i > index; --i) {
+      std::allocator_traits<decltype(alloc_)>::construct(
+          alloc_, data_ + i, std::move(data_[i - 1]));
+      std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i - 1);
     }
+    std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + index,
+                                                       value);
+    ++size_;
   }
 
-  void erase(std::size_t index) { /* TODO */ }
+  void erase(std::size_t index) {
+    assert(index < size_);
+    std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + index);
+    for (std::size_t i{index}; i < size_; ++i) {
+      std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + i,
+                                                         data_[i + 1]);
+      std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i + 1);
+    }
+    --size_;
+  }
 
 private:
   static constexpr std::size_t kInitialCapacity = 8;
 
   template <typename U> void PushBackImpl_(U &&value) {
     EnsureCapacityFor_(size_ + 1);
-    if (!capacity_) {
-      capacity_ = kInitialCapacity;
-      data_ = alloc_.allocate(capacity_);
-    } else if (size_ == capacity_) {
-      std::size_t new_capacity{capacity_ * 2};
-      T *new_data{alloc_.allocate(new_capacity)};
-      for (std::size_t i{}; i < size_; ++i) {
-        std::allocator_traits<decltype(alloc_)>::construct(alloc_, new_data + i,
-                                                           std::move(data_[i]));
-        std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i);
-      }
-      if (data_ != nullptr)
-        alloc_.deallocate(data_, capacity_);
-      size_ = capacity_;
-      capacity_ = new_capacity;
-      data_ = new_data;
-    }
     std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + size_,
                                                        std::forward<U>(value));
     ++size_;
@@ -187,8 +174,13 @@ private:
   }
 
   void CopyFrom_(const Vector &other) {
-    // TODO
-    (void)other;
+    size_ = other.size_;
+    capacity_ = other.capacity_;
+    data_ = alloc_.allocate(capacity_);
+    for (std::size_t i{}; i < size_; ++i) {
+      std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + i,
+                                                         other.data_[i]);
+    }
   }
 
   void MoveFrom_(Vector &&other) {
@@ -222,7 +214,7 @@ private:
     }
   }
 
-  std::size_t DoubleCapacity_(std::size_t capacity) { return capacity_ * 2; }
+  std::size_t DoubleCapacity_(std::size_t capacity) { return capacity * 2; }
 
   T *data_ = nullptr;
   std::size_t size_ = 0;
