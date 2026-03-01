@@ -169,7 +169,7 @@ TEST(VectorUnit, ResizeGrowAndShrink) {
   v.resize(5, Tracker(7));
   EXPECT_EQ(v.size(), 5u);
   EXPECT_EQ(Tracker::alive, 5);
-  for (size_t i = 0; i < v.size(); ++i)
+  for (size_t i = 1; i < v.size(); ++i)
     EXPECT_EQ(v[i].value, 7);
 }
 

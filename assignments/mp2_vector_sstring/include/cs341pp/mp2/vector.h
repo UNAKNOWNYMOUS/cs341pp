@@ -100,35 +100,31 @@ public:
   }
 
   void resize(std::size_t new_size, const T &value = T{}) {
-    /* new_size is less than size, which means we shrink vector i.e. delete
-     * elements */
-    if (new_size <= size_) {
-      for (std::size_t i{size_ - 1}; i >= new_size - 1; --i) {
+    if (new_size == size_) {
+      ; /* no op */
+    }
+    /* new_size < size_ shrink */
+    else if (new_size < size_) {
+      for (std::size_t i{new_size}; i < size_; ++i) {
         std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i);
       }
-      std::allocator_traits<decltype(alloc_)>::construct(
-          alloc_, data_ + new_size - 1, value);
-      size_ = new_size;
     }
-    /* new_size is greater than current capacity -> need to make capacity larger
-     */
+    /* new_size > capacity_ grow */
     else if (new_size > capacity_) {
       EnsureCapacityFor_(new_size);
-
       for (std::size_t i{size_}; i < new_size; ++i) {
         std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + i,
                                                            value);
       }
-      size_ = new_size;
     }
-    /* Can add as normal */
-    else if (new_size <= capacity_) {
+    /* size_ < new_size < capacity_ */
+    else if (size_ < new_size && new_size <= capacity_) {
       for (std::size_t i{size_}; i < new_size; ++i) {
         std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + i,
                                                            value);
       }
-      size_ = new_size;
     }
+    size_ = new_size;
   }
 
   void insert(std::size_t index, const T &value) {
@@ -146,12 +142,10 @@ public:
 
   void erase(std::size_t index) {
     assert(index < size_);
-    std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + index);
-    for (std::size_t i{index + 1}; i < size_; ++i) {
-      std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + i - 1,
-                                                         data_[i]);
-      std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i);
+    for (std::size_t i{index}; i < size_ - 1; ++i) {
+      data_[i] = std::move(data_[i + 1]);
     }
+    std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + size_ - 1);
     --size_;
   }
 
@@ -199,7 +193,11 @@ private:
   void EnsureCapacityFor_(std::size_t desired_capacity) {
     /* Vector is empty */
     if (!capacity_) {
-      capacity_ = kInitialCapacity;
+      if (desired_capacity < kInitialCapacity) {
+        capacity_ = kInitialCapacity;
+      } else {
+        capacity_ = IncreaseCapacity_(desired_capacity);
+      }
       data_ = alloc_.allocate(capacity_);
     }
     /* Need to create larger capacity to fit to new size */
