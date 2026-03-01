@@ -103,9 +103,11 @@ public:
     /* new_size is less than size, which means we shrink vector i.e. delete
      * elements */
     if (new_size <= size_) {
-      for (std::size_t i{size_}; i > new_size - 1; --i) {
-        std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i - 1);
+      for (std::size_t i{size_ - 1}; i >= new_size - 1; --i) {
+        std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i);
       }
+      std::allocator_traits<decltype(alloc_)>::construct(
+          alloc_, data_ + new_size - 1, value);
       size_ = new_size;
     }
     /* new_size is greater than current capacity -> need to make capacity larger
@@ -157,7 +159,7 @@ private:
   static constexpr std::size_t kInitialCapacity = 8;
 
   template <typename U> void PushBackImpl_(U &&value) {
-    EnsureCapacityFor_(size_);
+    EnsureCapacityFor_(size_ + 1);
     std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + size_,
                                                        std::forward<U>(value));
     ++size_;
@@ -201,7 +203,7 @@ private:
       data_ = alloc_.allocate(capacity_);
     }
     /* Need to create larger capacity to fit to new size */
-    else if (desired_capacity >= capacity_) {
+    else if (desired_capacity > capacity_) {
       std::size_t new_capacity{IncreaseCapacity_(desired_capacity)};
       T *new_data = alloc_.allocate(new_capacity);
 
