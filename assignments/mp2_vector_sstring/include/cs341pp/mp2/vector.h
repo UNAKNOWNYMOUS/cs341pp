@@ -72,7 +72,7 @@ public:
 
   void pop_back() {
     assert(size_ > 0);
-    std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + size_);
+    std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + size_ - 1);
     --size_;
   }
 
@@ -102,7 +102,7 @@ public:
   void resize(std::size_t new_size, const T &value = T{}) {
     if (new_size <= size_) {
       for (std::size_t i{size_}; i > new_size; --i) {
-        std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i);
+        std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i - 1);
       }
       size_ = new_size;
     } else {
