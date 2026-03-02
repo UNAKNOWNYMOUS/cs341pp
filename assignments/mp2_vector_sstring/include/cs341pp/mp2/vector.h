@@ -85,23 +85,14 @@ public:
 
   void reserve(std::size_t new_cap) {
     if (new_cap > capacity_) {
-      std::size_t new_capacity{new_cap};
-      T *new_data{alloc_.allocate(new_capacity)};
-      for (std::size_t i{}; i < size_; ++i) {
-        std::allocator_traits<decltype(alloc_)>::construct(alloc_, new_data + i,
-                                                           std::move(data_[i]));
-        std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i);
-      }
-      if (data_ != nullptr)
-        alloc_.deallocate(data_, capacity_);
-      data_ = new_data;
-      capacity_ = new_capacity;
+      EnsureCapacityFor_(new_cap);
     }
   }
 
   void resize(std::size_t new_size, const T &value = T{}) {
     if (new_size == size_) {
-      ; /* no op */
+      /* no op */
+      return;
     }
     /* new_size < size_ shrink */
     else if (new_size < size_) {
@@ -130,11 +121,12 @@ public:
   void insert(std::size_t index, const T &value) {
     EnsureCapacityFor_(size_ + 1);
     assert(index <= size_);
+    std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + size_,
+                                                       value);
     for (std::size_t i{size_}; i > index; --i) {
-      std::allocator_traits<decltype(alloc_)>::construct(
-          alloc_, data_ + i, std::move(data_[i - 1]));
-      std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i - 1);
+      data_[i] = std::move(data_[i - 1]);
     }
+    std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + index);
     std::allocator_traits<decltype(alloc_)>::construct(alloc_, data_ + index,
                                                        value);
     ++size_;
@@ -206,6 +198,7 @@ private:
       T *new_data = alloc_.allocate(new_capacity);
 
       for (std::size_t i{}; i < size_; ++i) {
+        /* NEED TO CHECK */
         std::allocator_traits<decltype(alloc_)>::construct(alloc_, new_data + i,
                                                            std::move(data_[i]));
         std::allocator_traits<decltype(alloc_)>::destroy(alloc_, data_ + i);
@@ -219,7 +212,7 @@ private:
   }
 
   std::size_t IncreaseCapacity_(std::size_t desired_capacity) {
-    std::size_t new_capacity{capacity_};
+    std::size_t new_capacity{1};
     while (new_capacity < desired_capacity) {
       new_capacity *= 2;
     }

@@ -35,27 +35,46 @@ void SString::Append(const SString &other) {
 }
 
 Vector<std::string> SString::Split(char delim) const {
-  Vector<std::string> ret_vec;
-  std::string current_string;
-  for (std::size_t i{}; buf_[i] != '\0'; ++i) {
+  Vector<std::string> out;
+  std::string curr;
+  for (std::size_t i{}; i < size(); ++i) {
     if (buf_[i] == delim) {
-      ret_vec.push_back(current_string);
-      current_string.clear();
+      out.push_back(curr);
+      curr.clear();
     } else {
-      current_string.push_back(buf_[i]);
+      curr.push_back(buf_[i]);
     }
   }
-  ret_vec.push_back("");
-  return ret_vec;
+  out.push_back(curr);
+  return out;
 }
 
 int SString::Substitute(std::size_t offset, std::string_view target,
                         std::string_view replacement) {
-  // TODO
-  (void)offset;
-  (void)target;
-  (void)replacement;
-  return -1;
+  if (offset > size())
+    return -1;
+  else if (target.size() == 0)
+    return -1;
+
+  std::string current_string{ToString()};
+  std::string::size_type pos{current_string.find(target, offset)};
+  if (pos == std::string::npos)
+    return -1;
+  else {
+    Vector<char> new_buf;
+    for (std::size_t i{}; i < pos; ++i) {
+      new_buf.push_back(current_string[i]);
+    }
+    for (std::size_t i{}; i < replacement.size(); ++i) {
+      new_buf.push_back(replacement[i]);
+    }
+    for (std::size_t i{pos + target.size()}; i < current_string.size(); ++i) {
+      new_buf.push_back(current_string[i]);
+    }
+    new_buf.push_back('\0');
+    buf_ = new_buf;
+    return 0;
+  }
 }
 
 std::string SString::Slice(std::size_t start, std::size_t end) const {
