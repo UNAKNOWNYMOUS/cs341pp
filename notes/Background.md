@@ -5,11 +5,14 @@ tags: []
 ---
 
 # $ ./a.out
+- Sometimes the journey of a thousand steps begins by learning to walk.
+- NOTE: There seems to be an extra bullet point here.
 ## Systems Architecture
 ### Assembly
 - Assembly is the lowest that you'll get to machine language without writing 1's and 0's.
 - Each computer has an architecture, and that architecture has an associated assembly language.
   - Each assembly command has a 1:1 mapping to a set of 1's and 0's that tell the computer exactly what to do.
+- Why do we 
 ### Atomic Operations
 - An operation is atomic if no other processor should interrupt it.
 - If an instruction is atomic, it makes sure that only one processor or thread performs any intermediate step at a time. With x86 this is done by the `lock` prefix.
