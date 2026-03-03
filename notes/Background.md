@@ -63,15 +63,20 @@ tags: []
 - Use assertions to make sure your code works up to a certain point - and importantly, to make sure you don't break it later.
 ## Valgrind
 - Valgrind is a suite of tools designed to provide debugging and profiling tools to make your programs more correct and detect some runtime issue.
+  - The most used of these tools is Memcheck, which can detect many memory-related errors that are common in C and C++ programs and that can lead to crashes and unpredictable behaviour.
 - The most used of these tools in Memcheck, which can detect many memory-related errors that are common in C and C++ programs and that can lead to crashes and unpredictable behavior (for example, unfreed memory buffers).
 - To run Valgrind on your program:
   - `valgrind --leak-chec=full --show-leak-kinds=all myprogram arg1 arg2`
+- Arguments are optional and the default tool that will run is Memcheck.
+- Valgrind is a effective tool to check for errors at runtime.
 ### TSAN
 - ThreadSanitizer is a tool from Google, built into clang and gcc, to help you detect race conditions in your code.
+- Note, that running with tsan will slow your code down a bit.
 ## GDB
 - GDB is short for the GNU Debugger.
 - GDB is a program that helps you track down errors by interactively debugging them.
 - A breakpoint is a line of code where you want the execution to stop and give control back to the debugger.
+- A useful trick when debugging complex C programs with GDB is setting breakpoints in the source code.
 ### Shell
 - A shell is a programming language that is running inside your terminal.
 - A terminal is merely a window to input commands.
