@@ -90,7 +90,18 @@ tags: []
 - strace and ltrace are two programs that trace the system calls and library calls, respectively, of a running program or command.
 - ltrace output can clue you in to weird things your program is doing live. Unfortunately, ltrace can't be used to inject faults, meaning that ltrace can tell you what is happening, but it can't tamper with what is already happening.
 - strace on the other hand could modify your program.
-  - Newer versions of strace can actually inject faults into your program.
+- The basic usage is running strace with a program, and it'll get you a complete list of system call parameters.
+- Newer versions of strace can actually inject faults into your program.
 ### printfs
 ## Homework 0
+### So you want to master System Programming? And get a better grade than B?
+### Watch the videos and write up your answers to the following questons.
+### Chapter 1
+### Chapter 2
+### Chapter 3
+### Chapter 4
+### Chapter 5
+### C Development
+### Optional: Just for fun
+## University of Illinois Specific Guidelines
 - See /cs341pp/assignments/hw0
