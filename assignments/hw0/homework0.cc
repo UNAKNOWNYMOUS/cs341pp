@@ -1,8 +1,10 @@
+#include <cstddef>
 #include <cstdio>
 #include <fcntl.h>
 #include <iostream>
 #include <string>
 #include <unistd.h>
+#include <vector>
 
 using std::cout;
 using std::endl;
@@ -177,7 +179,7 @@ void homework_0_chapter2() {
   /* Question 7 */
   cout << "7. What is the value of the variable 'str_size'?" << endl;
   cout << "ssize_t str_size = sizeof(\"Hello\\0World\");";
-  cout << "A: 12 bytes" << endl;
+  cout << "A: 12" << endl;
 
   /* Question 8 */
   cout << "8. What is the value of the variable 'str_len'" << endl;
@@ -197,10 +199,7 @@ void homework_0_chapter2() {
 
 /* Homework 0, Chapter 3 */
 void homework_0_chapter3() {
-  cout << endl;
-  cout << "====================       Homework 0, Chapter 3       "
-          "==================== "
-       << endl;
+  output_section(3);
   cout << "Program arguments, environment variables, and working with "
           "character arrays (strings)"
        << endl;
@@ -242,10 +241,7 @@ void homework_0_chapter3() {
 
 /* Homework 0, Chapter 4 */
 void homework_0_chapter4() {
-  cout << endl;
-  cout << "====================       Homework 0, Chapter 4       "
-          "==================== "
-       << endl;
+  output_section(4);
   cout << "Heap and stack memory, and working with structs." << endl;
 
   /* Question 1 */
@@ -256,12 +252,13 @@ void homework_0_chapter4() {
       << "A: You can return the value, allocate it on the heap, or claim it in "
          "global scope. You accomplish this by using the 'return' keyword, "
          "using new or malloc-related functions, declare the variable outside "
-         "of any functions."
+         "of any functions and you can also declare it as static."
       << endl;
 
   /* Question 2 */
-  cout << "What are the differences between heap and stack memory?" << endl;
-  cout << "The stack is used for activation records/functions - it is used for "
+  cout << "2. What are the differences between heap and stack memory?" << endl;
+  cout << "A: The stack is used for activation records/function call stack "
+          "frames - it is used for "
           "static allocation + is automatically allocates based on which "
           "function is called and the heap is for dynamic memory allocation"
        << endl;
@@ -342,46 +339,30 @@ void homework_0_chapter4() {
 
   class Person {
   public:
-    Person(std::string name = "None", int age = 0, int friend_count = 0,
-           int friend_cap = 10)
-        : name{name}, age{age}, friend_count{friend_count},
-          friend_cap{friend_cap} {
-      friends = new Person *[friend_cap] {};
+    Person(std::string name = "None", std::size_t age = 0)
+        : name{name}, age{age} {}
+    ~Person() = default;
+    void add_friend(Person single_friend) {
+      friend_list.push_back(single_friend);
     }
-    Person(const Person &source)
-        : Person{source.name, source.age, source.friend_count,
-                 source.friend_cap} {
-      for (int i{0}; i < source.friend_cap; i++) {
-        this->friends[i] = source.friends[i];
-      }
-    }
-    ~Person() { delete[] friends; }
 
   private:
     std::string name;
-    int age;
-    int friend_count;
-    int friend_cap;
-    Person **friends;
+    std::size_t age;
+    std::vector<Person> friend_list{};
   };
-
-  Person agent_s = Person("Agent Smith", 128);
-  Person sonny_m = Person("Sonny Moore", 256);
 }
 
 /* Homework 0, Chapter 5 */
 void homework_0_chapter5() {
-  cout << endl;
-  cout << "====================       Homework 0, Chapter 4       "
-          "==================== "
-       << endl;
+  output_section(5);
   cout << "Text input and output and parsing using 'getchar', 'gets', and "
           "'getline'."
        << endl;
 
   /* Question 1 */
   cout << "1. What functions can be used for getting characters from 'stdin' "
-          "and writing them to ''stdout"
+          "and writing them to 'stdout'"
        << endl;
   cout << "A: printf, cout, fscanf, sscanf, scanf, getline, getchar, putchar, "
           "puts"
@@ -390,50 +371,14 @@ void homework_0_chapter5() {
   /* Question 2 */
   cout << "2. Name one issue with 'gets()'." << endl;
   cout << "Buffer overflow - no check" << endl;
+
+  /* Question 3 */
+  /* Skipping for now */
+
+  /* Question 4 */
+  cout << "What does one need to define before including 'getline()'?" << endl;
+  cout << "A: On some systems you may need '#define _GNU_SOURCE'." << endl;
+
+  /* Question 5 */
+  /* Skipping for now */
 }
-
-// typedef struct Person Person;
-//
-// struct Person {
-//   char *name;
-//   int age;
-//   Person **friends;
-//   size_t num_friends;
-//   size_t cap_friends;
-// };
-
-// Person *create(int age, char *name);
-
-// agent_s->friends[num_friends++] = sonny_m;
-// sonny_m->friends[num_firends++] = agent_s;
-
-// Person *create(int age, const char *name) {
-//   Person *new_person = (Person *)malloc(sizeof(Person));
-//   if (!new_person) {
-//     exit(1);
-//   }
-//   new_person->age = age;
-//   new_person->name = (char *)malloc(strlen(name) + 1);
-//   if (!new_person->name) {
-//     exit(1);
-//   }
-//   strcpy(new_person->name, name);
-//   new_person->num_friends = 0;
-//   new_person->cap_friends = 10;
-//   new_person->friends = (Person **)malloc(sizeof(Person *) *
-//   new_person->cap_friends); memset(new_person->friends, 0, sizeof(Person *) *
-//   new_person->cap_friends); if (!new_person->friends) {
-//     exit(1);
-//   }
-//   return new_person;
-// }
-//
-// void destroy(Person **person) {
-//   free((*person)->name);
-//   free((*person)->friends);
-//   free((*person));
-//   *person = nullptr;
-// }
-//
-// Person *agent_s = create(128, "Agent Smith");
-// Person *sonny_m = create(256, "Sonny Moore");

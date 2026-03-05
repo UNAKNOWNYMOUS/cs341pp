@@ -102,6 +102,22 @@ tags: []
 ### Chapter 4
 ### Chapter 5
 ### C Development
+- 1. What compiler flag is used to generate a debug build?
+- A: `-g`
+- 2. You fix a problem in the Makefile and type `make` again.
+- A: Simply running `make` again after editing the Makefile may be insufficient to generate a new build because `make` primarily relies on file modification timestamps to determine if a target needs to be rebuilt.
+- 3. Are tabs or spaces used to indent the commands after the rule in a Makefile.
+- A: By a single tab.
+- 4. What does `git commit` do? What's a `sha` in the context of git?
+- A: The `git commit` command in Git saves a permanent snapshot of the changes from the staging area to the local repository history, while a SHA (Secure Hash Algorithm) is a unique identifier assigned to each commit.
+- 5. What does `git log` show you?
+- A: The `git log` command displays the history of commits in a Git repository. By default it shows the commits of the current branch in reverse chronological order (most recent first).
+- 6. What does `git status` tell you and how would the contents of `.gitignore` change its output?
+- A: The `git status` command displays the current state of the working directory and the staging area, while the `.gitignore` file alters its output by preventing specified untracked files from appearing in the status list.
+- 7. What does `git push` do? Why is it insufficient to commit with `git commit -m 'fixed all bugs'`?
+- A: The `git push` command uploads your local commits to a remote repository, making your changes accessible to others and creating a cloud backup.
+- 8. What does a non-fast-forward error `git push` reject mean? What is the most common way of dealing with this?
+- A: A non-fast-forward error in a `git push` means that your local branch has diverged from the remote branch, and the remote has new commits that you don't have locally. Git rejects the push by default to prevent you from accidentally overwriting or losing the commits that are on the remote repository. The most common way of dealing with this is to first integrate the remote changes into your local branch, then push again.
 ### Optional: Just for fun
 ## University of Illinois Specific Guidelines
 - See /cs341pp/assignments/hw0
