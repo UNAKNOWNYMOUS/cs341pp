@@ -8,25 +8,41 @@ tags: []
 - If you want to teach systems, don't drum up the programmers, sort the issues, and make PRs. Instead, teach them to yearn for the vast and endless C. - Antoine de Saint-Exupery (With edits).
 - C is the de-facto programming language to do serious systems programming.
   - Most kernels have their API accessible through C.
+- C doesn't have abstractions like classes and Resource Acquisition Is Initialization (RAII) to clean up memory.
 ## History of C
 - C was developed by Dennis Ritchie and Ken Thompson at Bell Labs back in 1973.
 - C was two-fold: it was made to target the most popular computers at the time, such as the PDP-7. It tried to remove some of the lower-level constructs (managing registers, and programming assembly for jumps), and create a language that had the power to express programs procedurally (as opposed to mathematically like LISP) with readable code.
   - All this while still having the ability to interface with the operating system.
+- It sounded like a tough feat. At first, it was only used internally at Bell Labs along with the UNIX operating system.
 - The first "real" standardization was with the Brian Kernighan and Dennis Ritchie's book.
+  - It is still widely regarded today as the only portable set of C instructions.
 - The K&R book is known as the de-facto standard for learning C.
 - We will be mainly focusing on is the POSIX C library which extends ISO.
 - The Linux kernel fails to be POSIX compliant.
   - Linux developers didn't want to pay the fee for compliance.
   - Did not want to be fully compliant with multitude of different standard because that meant increased development costs to maintain compliance.
 - Features of C:
-  - Speed
-  - Simplicity
-  - Manual Memory Management
-  - Ubiquity
+  - Speed - There is little separating a program and the system.
+  - Simplicity - C and its standard library comprise a simple set of portable functions.
+  - Manual Memory Management - C gives a program the ability to manage its memory. However, this can be a downside if a program has memory errors.
+  - Ubiquity - Through foreign function interfaces (FFI) and language bindings of various types, most other languages can call C functions and vice versa. The standard library is also everywhere. C has stood the test of time as a popular language, and it doesn't look like it is going anywhere.
 ## Crash course introduction to C
+```cpp
+#include <iostream>
+int main() {
+  std::cout << "Hello, World" << std::endl;
+  return 0;
+}
+```
 ### Preprocessor
 - What is the preprocessor?
   - Preprocessing is a copy and paste operation that the compiler performs *before* actually compiling the program.
+- In modern C++, you use `constexpr` to replace `#define` for array sizing.
+```cpp
+// Modern C++
+constexpr int MAX_LENGTH = 10;
+char buffer[MAX_LENGTH];
+```
 - There are side effects to the preprocessor though.
   - One problem is that the preprocessor needs to be able to tokenize properly, meaning trying to redefine the internals of the C language with a preprocessor may be impossible.
   - Another problems is that they can't be nested infinitely - there is a bounded depth where they need to stop.
