@@ -50,11 +50,277 @@ char buffer[MAX_LENGTH];
 - There are also logical problems with the flexibility of certain parameters.
 ## Language Facilities
 ### Keywords
+- `break`
+```cpp
+#include <iostream>
+
+int main() {
+  // Switch behavior
+  int x = 1;
+  switch(x) {
+    case 1:
+      std::cout << "1" << std::endl;
+      break;
+    case 2:
+      std::cout << "2" << std::endl;
+      break;
+  }
+
+  // Loop behavior
+  while (true) {
+    while (true) {
+      break; // Breaks out of the inner-most loop
+    }
+    break;
+  }
+  return 0;
+}
+```
+- `const`
+```cpp
+const int i = 0; // Constant integer
+int const j = 0; // same thing
+
+const char* ptr; // Data is constant, pointer is mutable
+char const* ptr; // Same thing ^
+
+char* const ptr3; // Pointer is constant, data is mutable
+const char *const ptr4; // Both are constant
+
+// The C++ Way to bypass const: const_cast
+const i = 10;
+int *nonConstI = const_cast<int *>(&i);
+
+// Critical Warning: Undefined Behavior
+// In CS341, the example states that bypassing const results in "defined behavior". In C++ this is incorrect.
+// If the original variable was declared 'const': Attempting to modify it (even through a pointer cast) is Undefined Behavior. The compiler might optimize the code assuming 'i' never changes, or place it in read-only memory. The program might crash, or it might "work" on one machine but fail on another.
+// If the original variable was NOT 'const': But you are accessing it through a 'const' pointer, using 'const_cast' to modify it is safe and defined.
+
+// C++ also adds 'constexpr', which is even stricter than 'const'. It ensures the value is evaluated at compile-time.
+constexpr int max_size = 100; // Guaranteed compile-time constant
+```
 - In systems programming, the only type of memory that you can't write to is system write-protected memory.
+- `continue`
+```cpp
+#include <iostream>
+
+int main() {
+  int i = 10;
+  while(i--) {
+    if (true) {
+      continue; // Jumps directly to the 'while(i--)' check
+    }
+
+    // This part is never reached
+    int *crash = nullptr;
+    *crash = 0;
+  }
+  return 0;
+}
+```
+- `do {} while ();`
+```cpp
+#include <iostream>
+
+int main() {
+  int i = 1;
+
+  do {
+    // Body executes first
+    std::cout << i-- << std::endl;
+  } while (i > 10); // check happens after the body
+
+  // Program continues here after the condition fails (is false)
+  return 0;
+}
+```
+- `enum`
+```cpp
+// Traditional C-style Enum - in C++ you don't need to repeat the 'enum' keyword when declaring a variable
+#include <iostream>
+
+enum day {
+  monday, tuesday, wednesday, thursday, friday, saturday, sunday
+};
+
+// No need to say 'void process_day(enum day foo)'
+void process_day(day foo) {
+  switch(foo) {
+    case monday:
+      std::cout << "Go home!" << std::endl;
+      break;
+  }
+}
+
+// Modern C++ "Strongly Typed" Enum ('enum class')
+// C++ introduced 'enum class' to solve to problems: name collisions (where two enums have the same member names) and accidental integer conversions.
+enum class Day {
+  Monday = 0,
+  Tuesday = 0, // Perfectly legal, but as you said, risky
+  Wednesday = 10,
+  Thursday = 11
+};
+
+void process_day(Day d) {
+  // You must use the 'Day::' prefix
+  if (d == Day::Monday) {
+    std::cout << "It's Monday." << std::endl;
+  }
+}
+```
 - If you are going to use abstraction, try not to break it.
+- `extern`
+```cpp
+// file1.cc
+#include <iostream>
+
+// Declaration: Tells the compiler 'panic' exists somewhere else
+extern int panic;
+
+void foo() {
+  if (panic) {
+    std::cout << "NONONONONO" << std::endl;
+  } else {
+    std::cout << "This is fine" << std::endl;
+  }
+}
+
+// file2.cpp
+// Definition: Actually reserves the memory for the variable
+int panic = 1;
+
+// The 'extern "C"' block If you are trying to link C++ code with actual C code (common in systems programming), you must wrap the declaration in 'extern "C"'. This prevents C++ name mangling, which is how C++ handles overloaded functions.
+extern "C" {
+  extern int panic;
+}
+
+// Global Consts: In C++, `const` globals have internal linkage by default (unlike C, where they are external). If you want a `const` variable in `file2.cc` to be seen in `file1.cc`, you must declare it as `extern const int panic = 1;` in the definition file.
+```
+- `for`
+```cpp
+#include <iostream>
+
+int main() {
+  // Standard declaration inside the loop
+  for (int i = 0; i < 10; ++i) {
+    std::cout << i << " ";
+  }
+  // i is no longer in scope here; it is destroyed after the loop
+  return 0;
+}
+// You can declare multiple variable in the initialization, but they must be of the same type:
+for (int i = 0, j = 10; i < j; ++i, --j);
+
+// Ranged-based for
+int arr[] = {1, 2, 3, 4, 5};
+for (int val : arr) {
+  std::cout << val;
+}
+```
+- Don't use `goto` in modern C++.
+- `if else else-if`
+```cpp
+#include <iostream>
+#include <cstdlib> // For exit()
+
+// (1) Bare if
+if (connect(...))
+  return -1;
+
+// (2) If with an else
+if (connect(...)) {
+  std::exit(-1);
+} else {
+  std::cout << "Connected!" << std::endl;
+}
+
+// (3) If with else-if
+if (connect(...)) {
+  std::exit(-1);
+} else if (bind(...)) {
+  std::exit(-2);
+}
+
+// (4) If with else-if and else
+if (connect(...)) {
+  std::exit(-1);
+} else if (bind(...)) {
+  std::exit(-2);
+} else {
+  std::cout << "Successfully bound!" << std::endl;
+}
+
+// Modern C++ "Init-Statement" (C++17)
+// C++11 and later introduced a very useful feature where you can initialize a variable inside the if statement. This keeps the variable's scope limited to the if/else block, which is cleaner and safe.
+// Variable 'status' only exists inside this if/else structure
+if (int status = connect(...); status != 0) {
+  std::cout << "Error code: " << status << std::endl;
+  return -1;
+} else {
+  std::cout << "Success!" << std::endl;
+}
+```
+- `inline`
+```cpp
+#include <iostream>
+
+// Defined in a header file usually
+inline int max(int a, int b) {
+  return (a < b) ? b : a;
+}
+
+int main() {
+  int x = 5, y = 10;
+  // The compiler might replace this call with the actual ternary logic
+  std::cout << "Max: " << max(x, y) << std::endl;
+  return 0;
+}
+
+/* Why 'inline' is different in C++:
+  1. Multiple Definitions: In C++, if you define a function in a header file and include it in multiple '.cpp' files, the linker will normally throw an error for "multiple definitions". Adding 'inline' allows that function to exist in multiple translation units without a linker error.
+  2. Class Methods: Any function defined inside a class or struct body is automatically considered 'inline' by the compiler.
+  3. The "Hint" Reality: Modern C++ compilers (like GCC, Clang, or MSVC) often ignore 'inline' for optimization purposes. They will inline functions that aren't marked 'inline' if they are small, and they might refuse to inline a function marked 'inline' if it's too complex (like having a recursive loop).*/
+// In modern C++, we often use 'constexpr' instead of just 'inline'. This not only hints at inlining but also allows the compiler to calculate the result at compile-time if the inputs are known.
+constexpr int max(int a, int b) {
+  return (a < b) ? b : a;
+}
+```
+- `struct`
+```cpp
+#include <iostream>
+
+struct Hostname {
+  std::string port;
+  std::string name;
+  std::string resource;
+};
+
+int main() {
+  // 1. No need to repeat the 'struct' keyword anymore
+  Hostname facebook;
+  facebook.port = "80";
+  facebook.name = "www.facebook.com";
+  facebook.resource = "/";
+
+  // 2. Aggregate Initialization (Static initialization)
+  Hostname google = {"80", "www.google.com", "/"};
+
+  // 3. Designated Initializers (C++20 and later)
+  Hostname github = { .port = "443", .name = "github.com", .resource = "/" };
+
+  return 0;
+
+  /* Key C++ Differences:
+      Type Name: In C++, 'struct Hostname' defines a new type named 'Hostname'. You don't have to write 'struct Hostname myVar;' every time (though you can); you just write 'Hostname myVar;'.
+      Struct vs Class: In C++, the only difference between a 'struct' and a 'class' is the default visibility. Members of a 'struct' are public by default; members of a 'class' are private.
+      Methods: C++ structs can have functions (methods) inside them, as well as constructors and destructors.
+      Memory Alignment: Just like C, C++ structs use padding to ensure alignment - just like classes. If you need to stop this (for network packets or binary files), you use compiler-specific pragmas like '#pragma pack(1)'.*/
+}
+```
 - C-structs are contiguous regions of memory that one can access specific elements of each memory as if they were separate variables.
   - Note that there might be padding between elements, such that each variable is memory-aligned (starts at a memory address that is a multiple of its size).
 ### C data types
+- `char` Represents exactly one byte of data. The number of bits in a byte might vary.
 ### Operators
 ## The C and Linux
 ### Everything is a file
