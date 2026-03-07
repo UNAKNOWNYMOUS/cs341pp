@@ -319,6 +319,114 @@ int main() {
 ```
 - C-structs are contiguous regions of memory that one can access specific elements of each memory as if they were separate variables.
   - Note that there might be padding between elements, such that each variable is memory-aligned (starts at a memory address that is a multiple of its size).
+- `using`
+```cpp
+#include <iostream>
+#include <functional> // For std::function
+
+// The Modern C++ way (Type Alias)
+using Comparator = int(*)(void*, void*);
+
+int greater_than(void *a, void *b) {
+  return a > b;
+}
+
+int main() {
+  Comparator gt = greater_than;
+
+  // Even better: std::function can hold pointers, lambdas, or functors
+  std::function<int(void*, void*)> modern_gt = greater_than;
+  return 0;
+}
+```
+- `union`
+```cpp
+#include <iostream>
+#include <cstdint>
+
+union Pixel {
+  // Anonymous struct: lets you access 'red' directly from 'Pixel'
+  struct {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+    uint8_t alpha;
+  };
+  uint32_t encoded;
+};
+
+int main() {
+  Pixel p;
+  p.encoded = 0xFF0000FF; // Red with full alpha
+
+  std::cout << "Red value: " << (int)p.red << std::endl;
+
+  p.blue = 0xAB; // Modify a single channel
+  return 0;
+}
+```
+- `signed`
+  - For the most part, unless your code involves bit shifting, it isn't essential to know the difference in behavior with regards to unsigned and signed arithmetic.
+- `void`
+```cpp
+// In C++, 'void foo()' and 'void foo(void)' are exactly the same. C++ assumes a function with empty parentheses takes no arguments by default, so the extra void is considered old-fashioned "C-style" and is rarely used.
+void foo() {
+  // Returns nothing
+}
+
+int main() {
+  foo(); // Valid
+  // foo(10); // Error: too many arguments
+  return 0;
+}
+
+// A 'void*' is still just a raw memory address. However, C++ is much stricter about pointers than C.
+// No Implicit Conversion: In C, you can do 'int* p = malloc(4);' because 'void*' converts to anything. In C++, this is an error. You must explicitly cast it.
+// Incomplete Type: You still cannot dereference a 'void*' or perform pointer arithmetic on it (though some compilers like GCC allow it as an extension, it is not standard C++).
+void *ptr = nullptr; // C++ uses nullptr instead of NULL
+int x = 10;
+ptr = &x; // This is fine
+
+int y = *ptr; // ERROR: Cannot dereference void*
+ptr++; // ERROR: Arithmetic on void* is undefined
+
+// You MUST cast it to use it:
+int* intPtr = static_cast<int*>(ptr);
+std::cout << *intPtr;
+```
+- `volatile`
+```cpp
+#include <iostream>
+
+// External function that might change the flag (e.g., in anoher file)
+extern void pass_flag(volatile int* f);
+
+int main() {
+  volatile int flag = 1;
+  pass_flag(flag) {
+    // Without 'volatile', the compiler might cache 'flag' in a register and never check the actual memory again, causing an infinite loop. With 'volatile', it is forced to re-read from memory every time.
+  }
+  return 0;
+}
+```
+- `volatile` for multi-threaded programs is considered bad practice (and often broken) in C++.
+- Not Atomic: `volatile` does not make an operation "thread-safe". If two threads increment a `volatile int` at the same time, you can still get a race condition.
+- No Memory Barriers: Modern CPUs reorder instructions for speed. `volatile` does not stop the CPU from moving a read or write operation, which can cause subtle bugs in multi-threading.
+The Modern C++ Solution: `std::atomic`:
+  - If you are doing multi-threading (affecting one sequence of execution with another), you should use `std::atomic` from the `<atomic>` header. It prevents the same optimization as `volatile` but also guarantees thread safety and proper memory ordering.
+```cpp
+#include <atomic>
+
+std::atomic<int> flag(1);
+
+// Thread A
+while (flag.load()) {
+  // This is safe, optimized correctly, and thread-aware.
+}
+
+// Thread B
+flag.store(0);
+```
 ### C data types
 - `char` Represents exactly one byte of data. The number of bits in a byte might vary.
 ### Operators
