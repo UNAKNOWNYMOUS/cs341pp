@@ -429,7 +429,12 @@ flag.store(0);
 ```
 ### C data types
 - `char` Represents exactly one byte of data. The number of bits in a byte might vary.
+- `unsigned` and `signed` versions of all data types are always the same size.
+- This must be aligned on a boundary (meaning you cannot use bits in between two addresses).
+- To use a fixed width integer type, for more portable code, you may use types defined in `<cstdint>` which are of the form `[u]intwidth_t`.
 ### Operators
+- `sizeof` is evaluated at the time of compilation.
+- Note that shifting by the word size (e.g. by 64 in a 64-bit architecture) results in undefined behavior.
 ## The C and Linux
 ### Everything is a file
 - One POSIX mantra is that everything is a file.
@@ -440,6 +445,7 @@ flag.store(0);
 - File descriptors are merely pointers.
 - Imagine that each of the file descriptors in the example actually refers to an entry in a table of objects that the operating system picks and chooses from (that is, the file descriptor table).
 - Objects can be allocated and deallocated, closed and opened, etc. The program interacts with these objects by using the API specified through system calls, and library functions.
+- In C++, the POSIX "everything is a file" philosophy remains identical, as C++ maintains low-level access to the same integer-based file descriptors, sockets, and epoll handles. While systems programming in C++ often uses the same calls, best practice involve wrapping these descriptors in classes to utilize RAII for automatic cleanup.
 ### System Calls
 - A system call is an operation that the kernel carries out.
   - First, the operating system prepares a system call.
@@ -451,8 +457,30 @@ flag.store(0);
       - etc
 - The way that a programmer communicates with the outside system is with system calls.
 - An important thing to note it that system calls are expensive. Their cost in terms of time and CPU cycles has recently been decreased, but try to use them as sparingly as possible.
+- In C++, System Calls function exactly the same as in C since they are the bridge to the Linux kernel.
+- While you can still use the raw POSIX `write()` call, C++ usually wraps these in RAII objects (like `std::ofstream`) to handle the "expensive" nature of kernel transitions through buffering.
+```cpp
+#include <unistd.h> // For raw write()
+#include <fstream> // For C++ buffered I/O
+
+// 1. Raw System Call (Direct kernel communication)
+// Fast but "expensive" per call; no safety nets.
+write(file_fd, "Hello!", 6);
+
+// 2. C++ Standard Library (Abstraction)
+// Automatically handles buffering to reduce system call frequency.
+std::ofstream file("test.txt");
+file << "Hello";
+// File closes automatically via destructor (RAII)
+```
+- Performance: C++ streams (like `cout` or `ofstream`) use an internal buffer. Instead of calling the kernel for every character, they wait and perform one large "expensive" system call.
+- Error Handling: Instead of checking a return integer, C++ uses stream states (`file.fail()`) or exceptions.
+- RAII: C++ eliminates "leaked" file descriptors by closing them automatically when the object goes out of scope.
 ### C System Calls
 ## Common C Functions
+- Note the man pages are organized into sections.
+  - Section 2 are System calls.
+  - Section 3 are C libraries.
 ### Handling Errors
 - Most functions in C handle errors return oriented.
   - This is at odds with programming languages like C++ or Java where the errors are handled with exceptions.
@@ -464,6 +492,37 @@ flag.store(0);
   - Exceptions can come from several layers deep.
   - Exceptions help reduce global state.
   - Exceptions differentiate business logic and normal flow.
+- In C++, you have two ways to handle errors: the C-style (return codes) and the C++ style (exceptions).
+- The C-style (still valid in C++)
+- C++ remains fully compatible with `errno` and `perror`. You'll use this when calling POSIX system calls or legacy C libraries.
+```cpp
+#include <cstdio>
+#include <cerrno>
+#include <cstring>
+
+std::FILE *f = std::fopen("/invalid/path", "r");
+if (!f) {
+  std::perror("Error opening file");
+}
+```
+- The C++ Style (Exceptions)
+- Modern C++ uses `try-catch` blocks. Instead of checking a return value after every line, you wrap the "happy path" logic and handle failures in one place.
+```cpp
+#include <fstream>
+#include <iostream>
+
+try {
+  std::ifstream file;
+  file.exceptions(std::ifstream::failbit); // Tell stream to throw on error
+  file.open("missing.txt");
+} catch (const std::exception &e) {
+  std::cerr << "Caught: " << e.what() << std::endl;
+}
+```
+- Key Differences:
+  - Backwards Compatibility: C++ uses return codes for OS-level calls (Section 2 man pages) because the Kernel doesn't "speak" C++ exceptions.
+  - Control Flow: Exceptions separate "what the code should do" from "what happens if it breaks," avoiding the "if-statement pyramid".
+  - Thread Safety: Like C, C++ maintain a thread-local `errno`. However, C++ exceptions are also tread-safe and carry their own data up the stack.
 ### Input / Output
 - Every process has three streams of data when it starts execution: standard input, standard output, standard error.
 - They're file descriptors are 0, 1, 2 respectively.
