@@ -27,12 +27,28 @@ tags: []
   - Manual Memory Management - C gives a program the ability to manage its memory. However, this can be a downside if a program has memory errors.
   - Ubiquity - Through foreign function interfaces (FFI) and language bindings of various types, most other languages can call C functions and vice versa. The standard library is also everywhere. C has stood the test of time as a popular language, and it doesn't look like it is going anywhere.
 ## Crash course introduction to C
+- C++:
 ```cpp
 #include <iostream>
 int main() {
   std::cout << "Hello, World" << std::endl;
   return 0;
 }
+```
+- Rust:
+```rust
+// Rust is a modern systems language, it follows many conventions established by C, with a focus on safety and ergonomics
+fn main() {
+  println!("Hello World");
+}
+// 'fn main()' is the entry point of every Rust program. Unlike C, you don't need to specify 'void' for no arguments, and you don't explicitly need to return an integer. If the function reaches the end without crashing, Rust assumes a successful exit (return 0).
+// 'println!' is a macro (indicated by the !). In C, 'printf' is a standard function, but in Rust, macros are used for printing to allow the compiler to check at compile-time that your format strings and arguments match up, preventing common crashes. The 'println!' macro automatically adds a newline and flushes the output buffer.
+// No '#include' is required for basic printing. Rust's prelude automatically imports the most commonly used tools. For external functionality, Rust uses a module system ('use') rather than text-substitution headers.
+// In the Rust ecosystem, we typically use Cargo, the built-in package manager and build tool, though you can use the compiler directly:
+// rustc main.rs
+// ./main
+// Hello World
+// cargo run handles compiling and executing in one step.
 ```
 ### Preprocessor
 - What is the preprocessor?
@@ -48,6 +64,41 @@ char buffer[MAX_LENGTH];
   - Another problems is that they can't be nested infinitely - there is a bounded depth where they need to stop.
 - Macros are also simple text substitutions, without semantics.
 - There are also logical problems with the flexibility of certain parameters.
+```rust
+/* Rust doesn't have a preprocessor. Instead of copy-pasting text before compiling, it uses Constants and Hygienic Macros that understand the structure of your code.
+
+Constants vs. #define
+In Rust, you use 'const'. Unlike C macros, constants have a type and a scope, so they don't leak everywhere.*/
+// Before
+const MAX_LENGTH: usize = 10;
+let buffer = [0u8; MAX_LENGTH];
+
+// After compilation
+let buffer = [0u8; 10];
+
+/* The Double Increment problems
+C macros are risky because they are raw text. If you pass x++ to a C macro, it might increment 'x' twice. Rust macros are hygienic; they treat inputs as complete expressions, so they only evaluate once. */
+macro_rules! my_min {
+  ($a:expr, $b:expr) => {
+    if $a < $b { $a } else { $b }
+  };
+}
+
+let mut x = 4;
+let r = my_min!(x, 5); // x becomes 5, not 6
+
+/* Operator Precedence:
+Because Rust macros operate on the syntax tree rather than text, you don't need to worry about the '10 + min(99, 100)' math error. The compiler knows 'min' is its own unit and won't let the '10 +' bleed into the logic. */
+/* Array Lengths:
+The C sizeof trick is unnecessary. In Rust, arrays and slices always "know" their length. Whether it's a fixed array or dynamic memory, you just call '.len()'.*/
+let static_array = [0; 10];
+let dynamic_vec = vec![0; 10];
+
+println!("{}", static_array.len()); // 10
+println!("{}", dynamic_vec.len()); // 10
+
+/* There is no risk of getting the size of a pointer by mistake because Rust distinguishes between the pointer and the data it points to. */
+```
 ## Language Facilities
 ### Keywords
 - `break`
@@ -426,6 +477,59 @@ while (flag.load()) {
 
 // Thread B
 flag.store(0);
+```
+- Rust:
+```rust
+/* Language Facilities */
+/* Rust uses keywords to define behavior, much like C, but with a focus on memory safety and modern syntax */
+
+/* 'break' exits a loop. In Rust, loops can be labeled to break out of specific nested blocks, and values can be returned from a 'loop' block. */
+'outer: loop {
+  while true {
+    break 'outer; // Exits the loop labeled 'outer
+  }
+}
+
+/* 'match' is the idiomatic alternative to 'switch'. It requires all possible cases to be handled, which helps prevent logic errors. There is no implicit "fall-through" between cases, so 'break' is not required at the end of each arm. */
+match x {
+  1 => println!("one").
+  2 => println!("two"),
+  _ => println("anything else"), // The "default" case
+}
+
+/* 'const', 'let', and 'mut': Variables in Rust are immutable by default. The 'mut' keyword must be uses to allow modifications. Unlike C, attempting to bypass immutability through pointer casting is generally prohibited by the compiler's safety rules. */
+const ID: i32 = 1; // Constant (compile-time)
+let x = 5; // Immutable variable
+let mut y = 10; // Mutable variable
+y = 11; // Allowed
+
+/* 'continue' skips the remainder of the current loop iteration and proceeds to the next one, identical to its function in C. */
+
+/* 'loop' and 'while': Rust provides a 'loop' keyword for intentional infinite loops. While there is no direct 'do-while' construct, the same behavior is achieved using a 'loop' with a conditional 'break' at the end. */
+
+/* 'enum': Rust enums are more versatile than C enums. They are functional sum types, allowing each variant to store different types of data. */
+enum Message {
+  Quit, // No data
+  Move { x: i32, y: i32 }; // Named fields
+  Write(String), // Tuple data
+}
+
+/* 'extern' is used to facilitate Foreign Function Interface (FFI) calls, typically when linking against C libraries. */
+/* 'for': Rust 'for' loops iterate over ranges or collections. This "for-each" style eliminates the need for manual counter management and helps avoid off-by-one errors. */
+for i : in 0..10 { // Iterate from 0 to 9
+  println!("{}", i);
+}
+
+/* 'goto': This keyword is not present in Rust. Structured control flow, such as labeled breaks and the 'Result' type for error handling, is used instead. */
+
+/* 'if' as an expression: In Rust, 'if' is an expression that returns a value. This often replaces the need for the ternary operator found in C. */
+let x = if condition { 1 } else { 2 }''
+
+/* 'inline': Similar to C, this is a hint to the compiler to integrate the function body at the call site. It is applied as an attribute: '#[inline]'. */
+
+/* 'restrict': Rust does not have a 'restrict' keyword. Its ownership and borrowing system ensures that mutable references are unique, which provides the compiler with the same aliasing information that 'restrict' provides in C, but with safety guarantees. */
+
+/* 'return': Exits a function and returns a value. Additionally, the final expression in a Rust function is returned automatically if the semicolon is omitted. */
 ```
 ### C data types
 - `char` Represents exactly one byte of data. The number of bits in a byte might vary.
