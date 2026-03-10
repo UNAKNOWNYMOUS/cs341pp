@@ -635,8 +635,20 @@ try {
   - Unbuffered, where the contents of the stream reach their destination as soon as possible.
   - Line Buffered, where the contents of the stream reach their destination as soon as a newline is provided.
   - Fully Buffered, where the contents of the stream reach their destination as soon as the buffer is full.
+- Standard Error is defined as "not fully buffered".
+- Standard Output and Input are merely defined to be fully buffered if and only if the stream destination is not an interactive device.
+- Usually, standard error will be unbuffered, standard input and output will be line buffered if the output is a terminal otherwise fully buffered.
 - One can force a write by calling `fflush()` on the stream.
+- To print strings and single characters, use `puts(char name)` and `putchat(char c)`.
+- To print to other files streams, use: `fprintf(_file_, "Hello %s, score: %d", name, score);`
+  - There is a printf equivalent that works with file descriptors, called `dprintf`.
+- To print data into a C string, use `sprintf` or better `snprintf`.
+  - `snprintf` returns the number of characters written excluding the terminating byte.
 ### stdin oriented functions
+- Programs should use `fgets` or `getline` instead of `gets`.
+- Note that, unlike `gets`, `fgets` copies the newline into the buffer.
+- `perror` will print the English version of the error to stderr.
+- To have a library function parse input in addition to ready it, use `scanf` (or `fscanf` or `sscanf`) to get input from the default input stream, an arbitrary file stream of a C string, respectively.
 ### string.h
 ## C Memory Model
 ### Structs
