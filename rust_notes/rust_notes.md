@@ -474,3 +474,222 @@ for inclusive_num in 1..=3 {
     - `loop`: Initiates an endless loop, which only halts upon encountering a `break` statement or an external intervention.
     - `while`: Iterates as long as the given condition holds true.
     - `for`: Ideal for iterating over sequences, such as array elements or iterator outputs.
+## Rust: Functions
+- In Rust, we begin functions using `fn`.
+### Basic syntax
+- Here's a basic function called `sing` that prints a `String`:
+```rust
+fn sing() {
+  println!("la la la LA LA");
+}
+```
+- Question: How do you initiate a function definition in Rust?
+- Answer: `fn greet()`
+### Parameters and return values
+- Functions can take inputs and give back outputs.
+- Here's how you can make a function called `add` that takes two numbers and returns their sum:
+```rust
+fn add(x: i32, y: i32) -> i32 {
+  x + y
+}
+```
+- Question: Interpret the function signature below:
+```rust
+fn always_blue(a: String, b: i32) -> bool
+```
+- Answer: `always_blue` takes a `String` and an `i32` and returns a `bool`
+### Return behavior
+- In Rust, a function's last expression is automatically its returned value, as long as it's not followed by a semicolon.
+- For example, the following function returns the square of a number.
+```rust
+fn sqaure(x: i32) -> i32 {
+  x * x
+}
+
+let result = sqaure(3);
+println!("{result}"); // 9
+```
+- Question: What is implied when a Rust function concludes with an expression that doesn't end in a semicolon?
+- Example:
+```rust
+fn mult(a: i32, b: i32) -> i32 {
+  a * b // <- notice no semicolon!
+}
+```
+- Answer: The function will yield a expression as a return value
+- What if you add a semicolon to the last expression?
+- If you add a semicolon to the end of a function's last expression, it makes the function return `()`. If the function signature specifies a different return type, you'll encounter a compile-timer error.
+- For instance:
+```rust
+fn sqaure(x: i32) -> i32 {
+  // x * x; Error! Expected return type `Integer` but found `()`
+}
+```
+- Question: What happens to this function?
+```rust
+fn sub(a: i32, b: i32) -> {
+  a - b;
+}
+```
+- Answer: It will cause a compile-time error due to the wrong return type.
+### Using the `return` keyword
+- If you prefer to be explicit with your return statements, Rust still supports using the `return` keyword.
+```rust
+fn square(x: i32) -> i32 {
+  return x * x; // <-- also valid!
+}
+```
+- Whether you choose to use the `return` keyword boils down to personal preference.
+### Summary
+- Function declaration: Functions are declared using the `fn` keyword with types arguments. Return types are defined using the `->` notation.
+- Expressive return mechanism: In Rust, the value of the final expression in a function serves as its return value, provided it doesn't end with a semicolon. Ending an expression with a semicolon causes it to return `()`, an empty tuple.
+- Explicit `return` keyword: Rust allows the use of the `return` keyword for early exits of clarity, but it's optional when returning the value of the final expression.
+## Rust: Ownership
+- To ensure thread safety, Rust uses unique concept called ownership.
+- In Rust, each piece of data can have only one owner at a time.
+### Transferring ownership
+- When you assign a value from one variable to another, the ownership can shift.
+- For complex types, this means the original variable can't be used anymore:
+```rust
+let s1 = String::from("hello");
+let s2 = s1; // Ownership passes from s1 to s2
+
+println!("{}", s2): // "hello"
+// println!("{}", s1); // This would error because s1 can no longer be used
+```
+- Question: If you transfer the ownership of a variable in Rust, what happens to the original variable?
+- Answer: It's rendered unusable
+### Copying simple data types
+- Not all data types in Rust have strict ownership rules.
+- Simple types, like integers, are copied instead of having their ownership transferred:
+```rust
+let num1 = 5;
+let num2 = num1; // num1 is copied, not transferred
+
+println!("{}", num1); // 5, Totally valid!
+println!("{}", num2); // 5, Also valid!
+```
+- Question: Which of the following statements is true regarding integers in Rust?
+- Answer: They get copied, not transferred.
+### Exceptions to the rule?
+- If Rust has such a strict ownership rule, how come some types, like integers, seem to behave differently?
+- Let's explore this further.
+### Copy vs. non-copy types
+- Rust categorizes data types into `Copy` and `non-Copy`.
+- This distinction is central to Rust's memory management approach.
+- Copy: Simple scalar types like integers, bool, and characters.
+- When assigned to another variable, they get copied.
+- The original remains untouched.
+- For instance:
+```rust
+let is_active = true;
+let is_duplicate = is_active;
+
+println!("{}", is_active); // "true"
+println!("{}", is_duplicate); // "true"
+```
+- Question: You have the following code:
+```rust
+let a = true;
+let b = a;
+println!("{}", a);
+```
+- What is the output of the code?
+- Answer: `true`
+- Non-Copy: Types such as `String` or `Vec`.
+- When assigned, they transfer ownership, making the original unusable.
+- For instance:
+```rust
+let text1 = String::from("Hello, word!");
+let text2 = text1;
+
+println!("{}", text2); // Outputs: Hello, world!
+// println!("{}", text1); // This would error because text1 can no longer be used
+```
+- Question: Consider the code:
+```rust
+let str1 = String::from("Rust");
+let str2 = str1;
+println!("{}", str1);
+```
+- What will this code result in?
+- Answer: Compilation error due to `str1` being unusable
+### Summary
+- Ownership in Rust: Rust has a unique ownership model for memory safety. Each data piece has one owner, and using a variable after transferring its ownership leads to an error, ensuring that data isn't modified from multiple locations at the same time.
+- Complex data type ownership: Types like `String` strictly adhere to Rust's ownership model. Once their ownership is transferred to another variable, the original becomes unusable.
+- Simple data type copy behavior: Unlike complex types, simple data types such as integers implement the `Copy` trait. This means they get duplicated when assigned to another variable, leaving the original variable intact and usable.
+## Rust: References
+- Rust provides a borrowing system to access data without transferring ownership.
+### The borrow symbol
+- The `&` symbol signifies a borrow.
+```rust
+let s = String::from("hello");
+let borrowed_s = &s;
+```
+- Borrowing comes in two flavors: immutable and mutable.
+### Immutable borrows
+- An immutable borrow lets you read data, but not change it.
+```rust
+let s = String::from("hello");
+let r1 = &s;
+let r2 = &s;
+```
+### Mutable borrows
+- A mutable reference lets you alter data.
+- Only one mutable reference is allowed within a scope.
+- This ensure no data races.
+```rust
+let mut s = String::from("hello");
+let r1 = &mut s;
+let r2 = &mut s; // Error: cannot borrow `s` as mutable more than once
+
+println!("{r1}, {r2}");
+```
+- Multiple immutable borrows can coexist, but not alongside a mutable borrow.
+```rust
+let mut s = String::from("hello");
+
+let r1 = &s;
+let r2 = &s;
+let r3 = &mut s; // This would be an error!
+
+println!("{r1}, {r2}, {r3}");
+```
+- Question: Why does Rust allow only one mutable reference to data in a particular scope?
+- Answer: To prevent potential data races
+### Dangling references
+- Dangling is when a reference's data gets freed while the reference still exists.
+- Rust ensures references never "dangle".
+```rust
+let r;
+{
+  let s = String::from("hello");
+  r = &s;
+} // `s` drops here, making `r` a dangling reference.
+```
+- Question: In the below code example, what is the primary reason Rust prevents the used of the variable `r` after the inner block?
+```rust
+let r;
+{
+  let s = String::from("hello");
+  r = &s;
+} // `s` is dropped here
+```
+- Answer: To prevent dangling references
+### Slices: a quick look
+- Slices let you reference collection parts, not the entire collection.
+- This way, you can work with collection segments without owning the whole thing.
+- This allows for flexible and safe data access.
+```rust
+let string = String::from("Hello, World!");
+let hello_slice = &string[0..5]; // hello_slice = "Hello"
+let world_slice = &string[7..12]; // world_slice = "World"
+```
+- Question: What's the main benefit of slices?
+- Answer: Work with parts without owning the entire collection
+### Summary
+- Rust promotes safe data handling through its borrowing mechanism, allowing data access without complete transfer:
+  - Immutable references: Read data without altering. Multiple immutable references can coexist unless there's mutable reference.
+  - Mutable references: Modify data. Only one is allowed per scope.
+  - Dangling references: Rust ensures all references point to valid data.
+  - Slices: Let you reference collections in parts.
