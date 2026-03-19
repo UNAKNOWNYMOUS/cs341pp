@@ -313,3 +313,299 @@ let s2 = String::from("hello"); // owned, growable string
 ### Key difference / better practice
 - C/C++: `char[]` vs `char*` matters a lot.
 - Rust: `&str` and `String` make this distinction much clearer.
+## 10) Strings
+### General
+- C strings are bytes ending with `\0`.
+- That NUL terminator is required.
+- `"ABC"` needs 4 bytes: `A B C \0`.
+### C
+```c
+char s[] = "ABC";
+printf("%s\n", s);
+```
+- String literal:
+```c
+char *p = "ABC"; // do not modify through p
+```
+### C++
+```cpp
+char s[] = "ABC";
+std::cout << s << "\n";
+
+std::string str = "ABC";
+std::cout << str << "\n";
+```
+### Rust
+```rust
+let s: &str = "ABC";
+println!("{}", s);
+
+let owned = String::from("ABC");
+println!("{}", owned);
+```
+### Key difference / better practice
+- C: strings are just arrays of chars ending in `\0`.
+- C++: prefer `std::string`.
+- Rust: prefer `String` or `&str`.
+## 11) Common string functions
+### General
+- Important operations:
+  - length
+  - compare
+  - copy
+  - concatenate
+  - duplicate
+### C
+```c
+strlen(s);
+strcmp(a, b);
+strcpy(dest, src);
+strcat(dest, src);
+strdup(src);
+```
+- Example:
+```c
+char a[20] = "Hi";
+strcat(a, " there");
+```
+### C++
+- C functions still exist, but modern C++ prefers `std::string`.
+```cpp
+std::string a = "Hi";
+a += " there";
+
+if (a == "Hi there") {
+}
+```
+### Rust
+```rust
+let a = String::from("Hi");
+let b = String::from(" there");
+let c = a.clone() + &b;
+```
+- Compare:
+```rust
+if c == "Hi there" {
+}
+```
+- Length:
+```rust
+let n = c.len();
+```
+### Key difference / better practice
+- C: string functions are powerful but unsafe if buffer is too small.
+- C++: use `std::string`.
+- Rust: use `String` / `&str`.
+## 12) String literals
+### General
+- A string literal is usually stored in read-only memory.
+- Treat it as immutable.
+### C
+```c
+char *p = "hello"; // points to read-only literal
+char a[] = "hello"; // local mutable copy
+```
+- Bad:
+```c
+*p = 'H'; // undefined behavior, often crashes
+```
+### C++
+```cpp
+const char *p = "hello";
+char a[] = "hello";
+```
+### Rust
+```rust
+let s = "hello"; // immutable string slive
+```
+### Key difference / better practice
+- C/C++: string literals should be treated as read-only.
+- Rust: immutable by default.
+## 13) Stack, heap, static memory
+### General
+- Three big memory areas to remember:
+  - stack: local variables, automatic lifetime
+  - heap: dynamic allocation
+  - static/global: exists for whole program
+### C
+```c
+int global_x = 1; // static storage
+
+void f(void) {
+  int local = 2; // stack
+  int *p = malloc(sizeof(int));
+  free(p);
+}
+```
+### C++
+```cpp
+int global_x = 1;
+
+void f() {
+  int local = 2;
+  int *p = new int(5);
+  delete p;
+}
+```
+- Better:
+```cpp
+auto p = std::make_unique<int>(5);
+```
+### Rust
+```rust
+static GLOBAL_X: i32 = 1;
+
+fn f() {
+  let local = 2; // stack
+  let p = Box::new(5); // heap
+}
+```
+### Key difference / better practice
+- C: manual heap management with `malloc/free`.
+- C++: prefer RAII objects (`std::string`, `std::vector`, `std::unique_ptr`).
+- Rust: ownership drops heap values automatically.
+## 14) Heap allocation
+### General
+- Heap memory lives until you free/drop it.
+- Use heap when lifetime/size is dynamic.
+### C
+```c
+int *p = malloc(sizeof *p);
+if (p != NULL) {
+  *p = 42;
+  free(p);
+}
+```
+- `calloc`:
+```c
+int *p = calloc(10, sizeof *p); // zero-initialized
+```
+- `realloc`:
+```c
+p = realloc(p, 20 * sizeof *p);
+```
+### C++
+```cpp
+int *p = new int(42);
+delete p;
+```
+- Better:
+```cpp
+auto p = std::make_unique<int>(42);
+```
+### Rust
+```rust
+let p = Box::new(42);
+println!("{}", *p);
+```
+- Growable heap buffer:
+```rust
+let mut v = Vec::new();
+v.push(1);
+v.push(2);
+```
+### Key difference / better practice
+- C: `malloc/calloc/realloc`
+- C++: avoid raw `new/delete` when possible
+- Rust: use `Box`, `Vec`, `String`; cleanup is automatic
+## 15) RAII / ownership
+### General
+- This is one of the biggest cross-language differences.
+### C
+- No RAII built in.
+- You must remember to clean up manually.
+```c
+FILE *f = fopen("a.txt", "r");
+if (!f) return -1;
+/* use f */
+fclose(f);
+```
+### C++
+- RAII = resource is acquired in constructor, released in destructor.
+- Cleanup happens automatically when object goes out of scope.
+```cpp
+#include <fstream>
+
+void f() {
+  std::ifstream file("a.txt");
+  // file closes automatically here
+}
+```
+- Smart pointer:
+```cpp
+auto p = std::make_unique<int>(42);
+```
+### Rust
+- Ownership + `Drop` gives RAII-like cleanup.
+- Value is cleaned up automatically when it goes out of scope.
+```rust
+use std::fs::File;
+
+fn f() {
+  let file = File::open("a.txt");
+  // cleaned up automatically at end of scope
+}
+```
+### Key difference / better practice
+- C: manual cleanup.
+- C++: RAII is the standard best practice.
+- Rust: ownership/Drop enforces cleanup naturally.
+## 16) `const`, mutability, and immutability
+### General
+- Mutability rules say whether data can be changed.
+```c
+const int x = 5;
+const char *p = "hello"; // pointer to const chars
+```
+### C++
+```cpp
+const int x = 5;
+const char *p = "hello";
+```
+### Rust
+- Rust is immutable by default.
+```rust
+let x = 5;
+// x = 6; // error
+let mut y = 5;
+y = 6;
+```
+### Key difference / better practice
+- C/C++: use `const` to express intent.
+- Rust: Immutability is default, which prevents many bugs.
+## 17) `static`, `extern`, global visibility
+### General
+- These control lifetime and visibility.
+### C
+```c
+static int file_only = 1; // visible only in this file
+extern int shared; // defined elsewhere
+```
+- Function-local static:
+```c
+void f(void) {
+  static int count = 0; // keeps value across calls
+  count++;
+}
+```
+### C++
+- Same ideas:
+```cpp
+static int file_only = 1;
+extern int shared;
+```
+### Rust
+- Rust does not use `extern`/`static` the same way for ordinary code.
+```rust
+static GLOBAL: i32 = 1;
+const VALUE: i32 = 10;
+```
+- For foreign functions:
+```rust
+extern "C" {
+  fn puts(s: *const i8) -> i32;
+}
+```
+### Key difference / better practice
+- C/C++: `static` and `extern` are core linkage/storage tools.
+- Rust: modules/privacy/ownership are more central; `extern "C"` is for FFI.
