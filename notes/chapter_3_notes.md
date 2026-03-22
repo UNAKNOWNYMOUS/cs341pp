@@ -609,3 +609,566 @@ extern "C" {
 ### Key difference / better practice
 - C/C++: `static` and `extern` are core linkage/storage tools.
 - Rust: modules/privacy/ownership are more central; `extern "C"` is for FFI.
+## 18) Structs, enums, unions
+### General
+- `struct` = group fields together.
+- `enum` = choose one value from a set.
+- `union` = same memory reused as different types.
+### C
+```c
+struct Point {
+  int x;
+  int y;
+};
+```
+- Enum:
+```c
+enum Day { MON, TUE, WED };
+```
+- Union:
+```c
+union Data {
+  int i;
+  float f;
+}
+```
+### C++
+```cpp
+struct Point {
+  int x;
+  int y;
+};
+```
+- Enum:
+```cpp
+enum class Day { Mon, Tue, Wed };
+```
+- Union:
+```cpp
+union Data {
+  int i;
+  float f;
+};
+```
+### Rust
+- Struct:
+```rust
+struct Point {
+  x: i32,
+  y: i32,
+}
+```
+- Enum:
+```rust
+enum Day {
+  Mon,
+  Tue,
+  Wed,
+}
+```
+- Rust enums are much stronger:
+```rust
+enum Message {
+  Quit,
+  Move(i32, i32),
+}
+```
+- Rust union exists but is rare and unsafe.
+### Key difference / better practice
+- C: structs/enums are simpler, unions are low-level.
+- C++: better enum safety with `enum class`.
+- Rust: enums are much more powerful than C enums.
+## 19) Control flow
+### General
+- Basic control flow:
+  - `if / else`
+  - `for`
+  - `while`
+  - `break`
+  - `continue`
+  - `switch` / `match`
+### C
+```c
+if (x > 0) { }
+for (int i = 0; i < 10; i++) { }
+while (x > 0) { }
+switch (x) {
+  case 1: break;
+  default: break;
+}
+```
+### C++
+```cpp
+if (x > 0) { }
+for (int i = 0; i < 10; i++) { }
+while (x > 0) { }
+switch (x) {
+  case 1: break;
+  default: break;
+}
+```
+### Rust
+```rust
+if x > 0 { }
+
+for i in 0..10 { }
+
+while x > 0 { }
+
+match x {
+  1 => {}
+  _ => {}
+}
+```
+### Key difference / better practice
+- C/C++: `switch` can fall through.
+- Rust: `match` is safer and more expressive.
+- Always use braces in C/C++ to avoid bugs.
+## 20) `goto`
+### General
+- `goto` jumps directly to a label.
+- Usually avoided because it hurts readability.
+- Sometimes used for cleanup in low-level C.
+### C++
+- Possible, but rarely needed due to RAII.
+```cpp
+if (error) goto cleanup;
+cleanup:
+  return;
+```
+### Rust
+- No `goto`.
+- Use structured control flow instead.
+### Key difference / better practice
+- C: sometimes acceptable for cleanup paths.
+- C++/Rust: usually unnecessary because cleanup is automatic or structured.
+## 21) Errors: return codes, exceptions, `Result`
+### General
+- Programs need a way to report failure.
+### C
+- Usually:
+  - return value indicates error
+  - `errno` stores extra error info
+```c
+FILE *f = fopen("missing.txt", "r");
+if (f == NULL) {
+  perror("fopen");
+}
+```
+### C++
+- Can use old C style or exceptions.
+```cpp
+try {
+  throw std::runtime_error("bad");
+} catch (const std::exception& e) {
+  std::cout << e.what() << "\n";
+}
+```
+### Rust
+- Uses `Result<T, E>`.
+```rust
+use std::fs::File;
+
+fn open_file() -> std::io::Result<File> {
+  File::open("missing.txt")
+}
+```
+### Key difference / better practice
+- C: return codes + `errno`
+- C++: exceptions or error codes
+- Rust: `Result` is explicit and very clean for systems code
+## 22) Standard I/O vs low-level I/O
+### General
+- There are two major styles:
+  - library I/O: buffered, higher-level
+  - system call / POSIX I/O: lower-level, file descriptors
+### C standard I/O (`FILE*`)
+- Buffered I/O:
+```c
+#include <stdio.h>
+
+FILE *f = fopen("a.txt", "r");
+fclose(f);
+```
+- Printing:
+```c
+printf("hello %d\n", 42);
+fprintf(stderr, "error\n");
+```
+### C POSIX I/O
+- Unbuffered system-call style:
+```c
+#include <fcntl.h>
+#include <unistd.h>
+
+int fd = open("a.txt", O_RDONLY);
+char buf[40];
+ssize_t n = read(fd, buf, sizeof(buf));
+close(fd);
+```
+### C++
+- Library I/O:
+```cpp
+#include <fstream>
+#include <iostream>
+
+std::ifstream f("a.txt");
+std::cout << "hello\n";
+```
+- Can still use POSIX I/O on Unix:
+```cpp
+int fd = open("a.txt", O_RDONLY);
+```
+### Rust
+- High-level:
+```rust
+use std::fs::File;
+use std::io::Read;
+
+let mut f = File::open("a.txt")?;
+let mut s = String::new();
+f.read_to_string(&mut s)?;
+```
+- Lower-level Unix-style is possible through crates or `std::os` APIs, but ordinary Rust code usually starts with safe wrappers.
+### Key difference / better practice
+- C stdio / C++ streams / Rust std::fs = easier, often buffered.
+- POSIX `open/read/write/close` = lower-level, work with integer file descriptors.
+- Use low-level I/O when you need exact OS-style behavior.
+## 23) File descriptors
+### General
+- On Unix-like systems, many resources are handled with file descriptors:
+  - files
+  - sockets
+  - pipes
+- A file descriptor is just an integer handle.
+### C
+```c
+int fd = open("a.txt", O_RDONLY);
+read(fd, buf, 40);
+close(fd);
+```
+### C++
+- Same POSIX idea on Unix:
+```cpp
+int fd = open("a.txt", O_RDONLY):
+```
+### Rust
+- Rust wraps OS handles in safe types:
+```rust
+use std::fs:File;
+let f = File::open("a.txt")?;
+```
+### Key difference / better practice
+- C/POSIX: raw integer descriptors.
+- C++/Rust: usually wrap raw resources in objects/types.
+## 24) Buffering of output
+### General
+- `stdout` is usually buffered.
+- `stderr` is usually unbuffered or less buffered.
+- This is why print order can look weird.
+### C
+```c
+fprintf(stderr, "Hello ");
+fprintf(stdout, "It's a small ");
+fprintf(stderr, "World\n");
+fprintf(stdout, "place\n");
+```
+- Possible output order may look mixed because `stdout` is buffered and `stderr` usually is not.
+### C++
+```cpp
+std::cerr << "Hello ";
+std::cout << "It's a small ";
+std::cerr << "World\n";
+std::cout << "place\n";
+```
+### Rust
+```rust
+eprint!("Hello ");
+print!("It's a small ");
+eprint!("World");
+println!("place");
+```
+### Key difference / better practice
+- If output order matters, flush explicitly.
+#### C
+```c
+fflish(stdout);
+```
+#### C++
+```cpp
+std::cout << std::flush;
+```
+#### Rust
+```rust
+use std::io::{self, Write};
+io::stdout().flush().unwrap();
+```
+## 25) Input functions
+### General
+- Reading input safely matters a lot.
+### C
+- Prefer:
+  - `fgets`
+  - `getline`
+```c
+char buf[10];
+fgets(buf, sizeof(buf), stdin);
+```
+- Dynamic:
+```c
+char *line = NULL;
+size_t n = 0;
+getline(&line, &n, stdin);
+free(line);
+```
+- Avoid:
+  - `gets` (removed, unsafe)
+### C++
+```cpp
+std::string s;
+std::getline(std::cin, s);
+```
+### Rust
+```rust
+let mut s = String::new();
+std::io::stdin().read_line(&mut s).unwrap();
+```
+### Key difference / better practice
+- C: bounds are your responsibility
+- C++/Rust: standard string input is much safer.
+## 26) Common memory bugs
+### General
+- Thee are the classic foot-guns.
+### A) Double free
+#### C
+```c
+int *p = malloc(sizeof *p);
+free(p);
+free(p); //bad
+```
+#### C++
+```cpp
+int *p = new int(5);
+delete p;
+delete p; // bad
+```
+#### Rust
+- Safe Rust prevents this automatically.
+### Better practice
+- After `free`, set pointer to `NULL` in C if ownership is done.
+- In C++, use smart pointers.
+- In Rust, ownership solves this.
+### B) Use after free
+#### C
+```c
+int *p = malloc(sizeof *p);
+free(p);
+*p = 5; // bad
+```
+#### C++
+```cpp
+int *p = new int(5);
+delete p;
+std::cout << *p; // bad
+```
+#### Rust
+- Safe Rust prevents this.
+### C) Wrong allocation size
+#### C
+- Bad:
+```c
+user_t *u = malloc(sizeof(u)); // only pointer size
+```
+- Good:
+```c
+user_t *u = malloc(sizeof(*u));
+```
+#### C++
+- Prefer not to raw-allocate structs manually.
+#### Rust
+- Not a common issue in safe Rust.
+### D) Buffer overflow
+#### C
+```c
+char buf[4];
+strcpy(buf, "hello"); // bad
+```
+#### C++
+```cpp
+char buf[4];
+std::strcpy(buf, "hello"); // bad
+```
+#### Rust
+- Bounds checked in safe code:
+```rust
+let a = [1, 2, 3];
+println!("{}", a[10]); // panic, not silent corruption
+```
+### Key difference / better practice
+- C/C++: easy to corrupt memory.
+- Rust: safe code prevents most memory corruption.
+## 27) `void*`
+### General
+- `void*` means "pointer to unknown type."
+- Good for generic low-level APIs.
+- Cannot be dereferenced until cast.
+### C
+```c
+void *p = malloc(10);
+char *s = p;
+```
+### C++
+```cpp
+void *p = std::malloc(10);
+char *s = static_cast<char *>(p);
+```
+### Rust
+- Raw generic pointers exist, but safe Rust prefers typed references.
+```rust
+let x = 5;
+let p = &x as *const i32;
+```
+### Key difference / better practice
+- C: `void*` is very common.
+- C++: use templates/generics instead when possible.
+- Rust: use generics/references first, raw pointers only when needed.
+## 28) `volatile`, `inline`, `restrict`
+### C
+```c
+volatile int flag;
+inline int max(int a, int b) { return a > b ? a : b; }
+void copy(int * restrict dst, int * restrict src);
+```
+### C++
+```cpp
+volatile int flag;
+inline int max(int a, int b) { return a > b ? a : b; }
+```
+- C++ does not really use `restrict` in standard C++ the same way C does.
+### Rust
+- No direct equivalent in ordinary safe syntax.
+  - `inline` exists as an attribute.
+```rust
+#[inline]
+fn max(a: i32, b: i32) -> {
+  if a > b { a } else { b }
+}
+```
+### Key difference / better practice
+- These are advanced tools.
+- Learn them, but don;t rely on them before mastering memory and ownership basics.
+## 29) Print formatting
+### General
+- Printing values is different across the three languages.
+### C
+```c
+printf("%s %d %c %p\n", str, num, ch, ptr);
+```
+- Common:
+  - `%s` string
+  - `%d` int
+  - `%c` char
+  - `%p` pointer
+### C++
+```cpp
+std::cout << str << " " << num << " " << ch << "\n";
+```
+### Rust
+```rust
+println!("{} {} {}", s, num, ch);
+println!("{:p}", ptr);
+```
+### Key difference / better practice
+- C: format strings are powerful but easy to misuse.
+- C++/Rust: stream/format systems are usually safer.
+## 30) Best-practice summary
+### C
+- Know:
+  - pointers
+  - arrays
+  - strings
+  - `malloc/free`
+  - `printf/fprintf`
+  - `open/read/write`
+  - `errno`
+- Always:
+  - check bounds
+  - allocate correct size
+  - free what you own
+  - avoid unsafe string copies
+### C++
+- Use C knowledge, but prefer:
+  - `std::string`
+  - `std::vector`
+  - `std::unique_ptr`
+  - RAII
+- Avoid raw `new/delete` unless necessary.
+### Rust
+- Learn:
+  - ownership
+  - borrowing
+  - `String` vs `&str`
+  - `Box`, `Vec`
+  - `Result`
+- Prefer safe Rust first.
+- Use `unsafe` only when required.
+## Tiny cross-language comparison cheatsheet
+### String ownership
+#### C
+```c
+char *p = "hi"; // borrowed-ish pointer to literal
+char a[] = "hi"; // owned mutable array
+```
+#### C++
+```cpp
+std::string s = "hi"; // owned string
+```
+#### Rust
+```rust
+let s1: &str = "hi"; // borrowed string slice
+let s2: String = String::from("hi"); // owned sting
+```
+### Heap allocation
+#### C
+```c
+int *p = malloc(sizeof *p);
+free(p);
+```
+#### C++
+```cpp
+auto p = std::make_unique<int>(5);
+```
+#### Rust
+```rust
+let p = Box::new(5);
+```
+### File open
+#### C
+```c
+FILE *f = fopen("a.txt", "r");
+```
+- or POSIX:
+```c
+int fd = open("a.txt", O_RDONLY);
+```
+#### C++
+```cpp
+std::ifstream f("a.txt");
+```
+#### Rust
+```rust
+let f = std::fs:File:open("a.txt")?;
+```
+## Final "remember this" section
+- C strings are bytes ending in `\0`.
+- Array != pointer.
+- `sizeof(ptr)` != `sizeof(*ptr)`.
+- Heap memory lives until freed/dropped.
+- String literals should be treated as read-only.
+- Pointer arithmetic moves by element size.
+- C uses return codes + `errno`.
+- POSIX I/O uses file descriptors (`int`).
+- stdio/iostream/Rust I/O are usually higher-level wrappers.
+- C needs manual cleanup.
+- C++ uses RAII.
+- Rust uses ownership and borrowing.
