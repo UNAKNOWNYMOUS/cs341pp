@@ -34,4 +34,10 @@ let x: {i32, &str, f64} = (1, "hello", 3.4);
 // Destructuring `let`
 let (a, b, c) = x;
 println!("{} {} {}", a, b, c);
+
+// Indexing
+println!("{}", x.1); // hello
 ```
+- A struct with unnamed fields, called a 'tuple struct'
+- If you want to make something optional, the standard library has `Option`.
+- This is defined in the standard library as `Option`, `Option` is used in place of where a null pointer would normally be used.
