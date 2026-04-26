@@ -9,10 +9,10 @@ tags: []
 ## A) `Vector<T>` template (in `vector.h`)
 
 ### Data members
-- [ ] `T* data_`
-- [ ] `size_t size_`
-- [ ] `size_t capacity_`
-- [ ] Allocator (recommended): `std::allocator<T> alloc_`
+- [x] `T* data_`
+- [x] `size_t size_`
+- [x] `size_t capacity_`
+- [x] Allocator (recommended): `std::allocator<T> alloc_`
 
 ### Core invariants
 - [ ] `0 <= size_ <= capacity_`
@@ -22,7 +22,7 @@ tags: []
 ### Required API
 
 #### Constructors / destructor
-- [ ] Default constructor
+- [x] Default constructor
 - [ ] Destructor
   - [ ] Destroys constructed elements
   - [ ] Frees the underlying buffer
