@@ -48,8 +48,25 @@ public:
   T *end() { ; }
   const T *end() const { ; }
 
+  void push_back(const T &value) { ; }
+  // Using 'std::move' because even though value is an r-value in C++ a name is
+  // an l-value so it will trigger a copy when passed elsewhere
+  void push_back(T &&value) { ; }
+
+  void pop_back() { ; }
+
+  void clear() { ; }
+  void reserve(std::size_t new_cap) { ; }
+  // TODO: Write comment explaining why using list initializer that assignment
+  // r-value to l-value const ref i.e. it is efficient
+  void resize(std::size_t new_size, const T &value = T{}) { ; }
+  void insert(std::size_t index, const T &value) { ; }
+  void erase(std::size_t index) { ; }
+
 private:
-  // Initializing variables
+  // Evaluated at compile time
+  static constexpr std::size_t kInitialCapacity = 8;
+
   T *data_ = nullptr;
   std::size_t size_ = 0;
   std::size_t capacity_ = 0;
