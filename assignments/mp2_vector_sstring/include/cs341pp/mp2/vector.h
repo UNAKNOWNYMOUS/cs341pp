@@ -8,8 +8,10 @@
 #ifndef CS341PP_MP2_VECTOR_H_
 #define CS341PP_MP2_VECTOR_H_
 
+#include <cassert>
 #include <cstddef>
 #include <memory>
+#include <utility>
 
 namespace cs341pp::mp2 {
 
@@ -18,21 +20,35 @@ public:
   // Implementing Rule of 6 (including Destructor)
   // Asking compiler to generate a default no args constructor
   Vector() = default;
-  ~Vector() { ; }
+  ~Vector() { ClearAndFree_(); }
 
   // Copy Constructor
-  Vector(const Vector &other) { ; }
+  Vector(const Vector &other) { CopyFrom_(other); }
   // Copy Assignment Constructor
-  Vector &operator=(Vector &other) { ; }
+  Vector &operator=(Vector &other) {
+    // self assignment guard
+    if (this != &other) {
+      ClearAndFree_();
+      CopyFrom_(other);
+    }
+    return *this;
+  }
 
   // Move Constructor
-  Vector(const Vector &&other) noexcept { ; }
+  Vector(const Vector &&other) noexcept { MoveFrom_(std::move(other)); }
   // Move Assignment Constructor
-  Vector &operator=(Vector &&other) noexcept { ; }
+  Vector &operator=(Vector &&other) noexcept {
+    // self assignment guard
+    if (this != &other) {
+      ClearAndFree_();
+      MoveFrom_(std::move(other));
+    }
+    return *this;
+  }
 
-  std::size_t size() const { ; }
-  std::size_t capacity() const { ; }
-  bool empty() const { ; }
+  std::size_t size() const { return size_; }
+  std::size_t capacity() const { return capacity_; }
+  bool empty() const { return size_ == 0; }
 
   // Overloading operator for mutable and immutable objects
   T &operator[](std::size_t i) { ; }
@@ -66,6 +82,24 @@ public:
 private:
   // Evaluated at compile time
   static constexpr std::size_t kInitialCapacity = 8;
+
+  template <typename U> void PushBackImpl_(U &&value) {
+    // TODO: Here
+    (void)value;
+  }
+
+  void ClearAndFree_() {
+    // TODO:
+  }
+
+  void CopyFrom_(const Vector &other) {
+    // TODO:
+    (void)other;
+  }
+
+  void MoveFrom_(Vector &&other) {
+    // TODO:
+  }
 
   T *data_ = nullptr;
   std::size_t size_ = 0;

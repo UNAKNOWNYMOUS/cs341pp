@@ -33,9 +33,9 @@ tags: []
    - [ ] Should be cheap
 
 #### Capacity / state
-- [ ] `size()`
-- [ ] `capacity()`
-- [ ] `empty()`
+- [x] `size()`
+- [x] `capacity()`
+- [x] `empty()`
 
 #### Element access
 - [ ] `T& operator[](size_t i)`
