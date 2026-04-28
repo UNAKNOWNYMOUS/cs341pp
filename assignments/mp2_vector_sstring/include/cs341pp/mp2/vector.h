@@ -18,6 +18,9 @@ namespace cs341pp::mp2 {
 template <typename T> class Vector {
 public:
   // Implementing Rule of 6 (including Destructor)
+  // Apparently there is a Rule of 7 now so I can implement the "swap" special
+  // method but I don't think that is necessary for this project
+
   // Asking compiler to generate a default no args constructor
   Vector() = default;
   ~Vector() { ClearAndFree_(); }
@@ -25,7 +28,7 @@ public:
   // Copy Constructor
   Vector(const Vector &other) { CopyFrom_(other); }
   // Copy Assignment Constructor
-  Vector &operator=(Vector &other) {
+  Vector &operator=(const Vector &other) {
     // self assignment guard
     if (this != &other) {
       ClearAndFree_();
@@ -35,7 +38,7 @@ public:
   }
 
   // Move Constructor
-  Vector(const Vector &&other) noexcept { MoveFrom_(std::move(other)); }
+  Vector(Vector &&other) noexcept { MoveFrom_(std::move(other)); }
   // Move Assignment Constructor
   Vector &operator=(Vector &&other) noexcept {
     // self assignment guard
@@ -67,8 +70,8 @@ public:
 
   // Iterators (will allow me to do a for each loop)
   T *begin() { return data_; }
-  const T *begin() const { return data_; }
   T *end() { return data_ + size_; }
+  const T *begin() const { return data_; }
   const T *end() const { return data_ + size_; }
 
   void push_back(const T &value) { PushBackImpl_(value); }
@@ -76,7 +79,10 @@ public:
   // an l-value so it will trigger a copy when passed elsewhere
   void push_back(T &&value) { PushBackImpl_(std::move(value)); }
 
-  void pop_back() { ; }
+  void pop_back() {
+    assert(size_ > 0);
+    ;
+  }
 
   void clear() { ; }
   void reserve(std::size_t new_cap) { ; }
@@ -91,12 +97,30 @@ private:
   static constexpr std::size_t kInitialCapacity = 8;
 
   template <typename U> void PushBackImpl_(U &&value) {
-    // TODO: Here
-    (void)value;
+    if (size_ == capacity_) {
+      if (!capacity_) {
+        capacity_ = kInitialCapacity;
+        alloc_.allocate(capacity_);
+      } else {
+        capacity_ = size_ * 2;
+        for (std::size_t i{}; i < size_; ++i) {
+          std::allocator_traits<std::allocator<T>>::construct(alloc_,
+                                                              data_ + i, )
+        }
+      }
+    }
   }
 
   void ClearAndFree_() {
-    // TODO:
+    if (data_ != nullptr) {
+      for (std::size_t i{}; i < size_; ++i) {
+        std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
+      }
+    }
+    alloc_.deallocate(data_, capacity_);
+    data_ = nullptr;
+    size_ = 0;
+    capacity_ = 0;
   }
 
   void CopyFrom_(const Vector &other) {
@@ -105,13 +129,19 @@ private:
   }
 
   void MoveFrom_(Vector &&other) {
-    // TODO:
+    data_ = other.data_;
+    size_ = other.size_;
+    capacity_ = other.capacity_;
+    other.data_ = nullptr;
+    other.size_ = 0;
+    other.capacity_ = 0;
   }
 
   T *data_ = nullptr;
   std::size_t size_ = 0;
   std::size_t capacity_ = 0;
-  std::allocator<T> alloc_;
+  std::allocator<T> alloc_; // stateless - does not store anything "personal"
+                            // that effects how it functions
 };
 
 } // namespace cs341pp::mp2
