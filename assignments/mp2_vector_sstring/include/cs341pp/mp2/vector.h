@@ -81,10 +81,17 @@ public:
 
   void pop_back() {
     assert(size_ > 0);
-    ;
+    std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + size_--);
   }
 
-  void clear() { ; }
+  void clear() {
+    if (data_ != nullptr) {
+      for (std::size_t i{}; i < size_; ++i) {
+        std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
+      }
+      size_ = 0;
+    }
+  }
   void reserve(std::size_t new_cap) { ; }
   // TODO: Write comment explaining why using list initializer that assignment
   // r-value to l-value const ref i.e. it is efficient
@@ -97,18 +104,32 @@ private:
   static constexpr std::size_t kInitialCapacity = 8;
 
   template <typename U> void PushBackImpl_(U &&value) {
-    if (size_ == capacity_) {
+    // Ensure capacity is there for new object
+    // TODO: Make into helper
+    if (size_ + 1 >= capacity_) {
       if (!capacity_) {
         capacity_ = kInitialCapacity;
-        alloc_.allocate(capacity_);
+        data_ = alloc_.allocate(capacity_);
       } else {
-        capacity_ = size_ * 2;
+        std::size_t new_capacity = size_ * 2;
+        T *new_data{alloc_.allocate(new_capacity)};
         for (std::size_t i{}; i < size_; ++i) {
-          std::allocator_traits<std::allocator<T>>::construct(alloc_,
-                                                              data_ + i, )
+          std::allocator_traits<std::allocator<T>>::construct(alloc_, new_data,
+                                                              data_[i]);
+          std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
         }
+        if (data_ != nullptr)
+          alloc_.deallocate(data_, capacity_);
+        data_ = new_data;
+        capacity_ = new_capacity;
+        // size will remain the same
       }
     }
+    // Add element
+    std::allocator_traits<std::allocator<T>>::construct(
+        alloc_, data_ + size_++,
+        std::forward<U>(
+            value)); // perfect forwarding - using universal refernce
   }
 
   void ClearAndFree_() {
