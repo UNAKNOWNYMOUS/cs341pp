@@ -92,7 +92,21 @@ public:
       size_ = 0;
     }
   }
-  void reserve(std::size_t new_cap) { ; }
+  void reserve(std::size_t new_cap) {
+    if (new_cap > capacity_) {
+      T *new_data{alloc_.allocate(new_cap)};
+      for (std::size_t i{}; i < size_; ++i) {
+        std::allocator_traits<std::allocator<T>>::construct(
+            alloc_, new_data + i, data_[i]);
+        std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
+      }
+      if (data_ != nullptr) {
+        alloc_.deallocate(data_, capacity_);
+        data_ = new_data;
+        capacity_ = new_cap;
+      }
+    }
+  }
   // TODO: Write comment explaining why using list initializer that assignment
   // r-value to l-value const ref i.e. it is efficient
   void resize(std::size_t new_size, const T &value = T{}) { ; }
@@ -114,8 +128,8 @@ private:
         std::size_t new_capacity = size_ * 2;
         T *new_data{alloc_.allocate(new_capacity)};
         for (std::size_t i{}; i < size_; ++i) {
-          std::allocator_traits<std::allocator<T>>::construct(alloc_, new_data,
-                                                              data_[i]);
+          std::allocator_traits<std::allocator<T>>::construct(
+              alloc_, new_data + i, data_[i]);
           std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
         }
         if (data_ != nullptr)
