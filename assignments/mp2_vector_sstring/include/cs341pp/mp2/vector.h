@@ -109,7 +109,34 @@ public:
   }
   // TODO: Write comment explaining why using list initializer that assignment
   // r-value to l-value const ref i.e. it is efficient
-  void resize(std::size_t new_size, const T &value = T{}) { ; }
+  void resize(std::size_t new_size, const T &value = T{}) {
+    if (new_size <= size_) {
+      for (std::size_t i{size_ - 1}; i >= new_size; --i) {
+        std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
+      }
+      size_ = new_size;
+    } else {
+      if (new_size > capacity_) {
+        std::size_t new_capacity{(new_size + capacity_) * 2};
+        T *new_data{alloc_.allocate(new_capacity)};
+        for (std::size_t i{}; i < size_; ++i) {
+          std::allocator_traits<std::allocator<T>>::construct(alloc_, new_data,
+                                                              data_[i]);
+          std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
+        }
+        if (data_ != nullptr) {
+          alloc_.deallocate(data_, capacity_);
+        }
+        data_ = new_data;
+        capacity_ = new_capacity;
+      }
+      for (std::size_t i{size_}; i < new_size; ++i) {
+        std::allocator_traits<std::allocator<T>>::construct(alloc_, data_ + i,
+                                                            value);
+      }
+      size_ = new_size;
+    }
+  }
   void insert(std::size_t index, const T &value) { ; }
   void erase(std::size_t index) { ; }
 
