@@ -137,7 +137,31 @@ public:
       size_ = new_size;
     }
   }
-  void insert(std::size_t index, const T &value) { ; }
+  void insert(std::size_t index, const T &value) {
+    assert(index <= size_);
+    if (size_ + 1 > capacity_) {
+      std::size_t new_capacity{(1 + capacity_) * 2};
+      T *new_data{alloc_.allocate(new_capacity)};
+      for (std::size_t i{}; i < size_; ++i) {
+        std::allocator_traits<std::allocator<T>>::construct(
+            alloc_, new_data + i, data_[i]);
+        std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
+      }
+      if (data_ != nullptr) {
+        alloc_.deallocate(data_, capacity_);
+      }
+      data_ = new_data;
+      capacity_ = new_capacity;
+    }
+    for (std::size_t i{size_}; i > index; --i) {
+      std::allocator_traits<std::allocator<T>>::construct(alloc_, data_ + i,
+                                                          data_[i - 1]);
+      std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i - 1);
+    }
+    std::allocator_traits<std::allocator<T>>::construct(alloc_, data_ + index,
+                                                        value);
+    ++size_;
+  }
   void erase(std::size_t index) { ; }
 
 private:
