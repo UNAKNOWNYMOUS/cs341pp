@@ -162,7 +162,14 @@ public:
                                                         value);
     ++size_;
   }
-  void erase(std::size_t index) { ; }
+  void erase(std::size_t index) {
+    assert(index < size_);
+    for (std::size_t i{index}; i < size_ - 1; ++i) {
+      data_[i] = std::move(data_[i + 1]);
+    }
+    std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + size_);
+    --size_;
+  }
 
 private:
   // Evaluated at compile time
