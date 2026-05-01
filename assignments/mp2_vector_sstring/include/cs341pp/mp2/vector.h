@@ -217,8 +217,13 @@ private:
   }
 
   void CopyFrom_(const Vector &other) {
-    // TODO:
-    (void)other;
+    data_ = alloc_.allocate(other.capacity_);
+    size_ = other.size_;
+    capacity_ = other.capacity_;
+    for (std::size_t i{}; i < other.size_; ++i) {
+      std::allocator_traits<std::allocator<T>>::construct(alloc_, data_ + i,
+                                                          other[i]);
+    }
   }
 
   void MoveFrom_(Vector &&other) {
