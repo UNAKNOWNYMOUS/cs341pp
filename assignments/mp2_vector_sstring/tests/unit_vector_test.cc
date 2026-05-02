@@ -259,3 +259,43 @@ TEST(VectorUnit, DestructorBalancesForNonTrivialTypes) {
   // (Exact ctor/dtor math can vary by move/copy strategy; alive==0 is the key.)
   EXPECT_GT(Tracker::dtor, 0);
 }
+
+TEST(VectorExtra, ResizeToZeroDoesNotHang) {
+  mp2::Vector<int> v;
+  v.resize(3, 7);
+  v.resize(0, 9);
+  EXPECT_EQ(v.size(), 0u);
+}
+
+TEST(VectorExtra, ResizeLargeFromEmptyWorks) {
+  mp2::Vector<int> v;
+  v.resize(20, 7);
+  ASSERT_EQ(v.size(), 20u);
+  EXPECT_GE(v.capacity(), 20u);
+  for (size_t i = 0; i < v.size(); ++i) {
+    EXPECT_EQ(v[i], 7);
+  }
+}
+
+TEST(VectorExtra, ReserveLargeFromEmptyWorks) {
+  mp2::Vector<int> v;
+  v.reserve(1000);
+  EXPECT_GE(v.capacity(), 1000u);
+  EXPECT_EQ(v.size(), 0u);
+}
+
+TEST(VectorExtra, EraseFirstOfTwo) {
+  mp2::Vector<int> v;
+  v.push_back(1);
+  v.push_back(2);
+  v.erase(0);
+  ASSERT_EQ(v.size(), 1u);
+  EXPECT_EQ(v[0], 2);
+}
+
+TEST(VectorExtra, CopyEmptyVector) {
+  mp2::Vector<int> a;
+  mp2::Vector<int> b = a;
+  EXPECT_EQ(b.size(), 0u);
+  EXPECT_TRUE(b.empty());
+}
