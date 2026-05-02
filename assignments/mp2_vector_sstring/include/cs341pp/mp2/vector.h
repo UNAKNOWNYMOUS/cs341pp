@@ -82,8 +82,7 @@ public:
 
   void pop_back() {
     assert(size_ > 0);
-    std::allocator_traits<std::allocator<T>>::destroy(alloc_,
-                                                      data_ + size_-- - 1);
+    std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + size_--);
   }
 
   void clear() {
@@ -179,26 +178,7 @@ private:
 
   template <typename U> void PushBackImpl_(U &&value) {
     // Ensure capacity is there for new object
-    // TODO: Make into helper
-    if (size_ + 1 >= capacity_) {
-      if (!capacity_) {
-        capacity_ = kInitialCapacity;
-        data_ = alloc_.allocate(capacity_);
-      } else {
-        std::size_t new_capacity = size_ * 2;
-        T *new_data{alloc_.allocate(new_capacity)};
-        for (std::size_t i{}; i < size_; ++i) {
-          std::allocator_traits<std::allocator<T>>::construct(
-              alloc_, new_data + i, data_[i]);
-          std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
-        }
-        if (data_ != nullptr)
-          alloc_.deallocate(data_, capacity_);
-        data_ = new_data;
-        capacity_ = new_capacity;
-        // size will remain the same
-      }
-    }
+    EnsureCapacityFor_(size_ + 1);
     // Add element
     std::allocator_traits<std::allocator<T>>::construct(
         alloc_, data_ + size_++,
@@ -238,20 +218,19 @@ private:
   }
 
   void EnsureCapacityFor_(std::size_t desired_capacity) {
-    std::size_t new_capacity = IncreaseCapacity_(desired_capacity);
-    if (new_capacity != capacity_) {
-      CopyElements_(new_capacity);
+    std::size_t new_capacity{capacity_};
+    if (!capacity_) {
+      new_capacity = kInitialCapacity;
+    } else if (desired_capacity > capacity_) {
+      new_capacity = IncreaseCapacity_(desired_capacity);
     }
+    CopyElements_(new_capacity);
   }
 
   std::size_t IncreaseCapacity_(std::size_t desired_capacity) {
     std::size_t new_capacity{capacity_};
-    if (desired_capacity < kInitialCapacity || capacity_ < kInitialCapacity) {
-      new_capacity = kInitialCapacity;
-    } else {
-      while (new_capacity < desired_capacity) {
-        new_capacity *= 2;
-      }
+    while (new_capacity < desired_capacity) {
+      new_capacity *= 2;
     }
     return new_capacity;
   }
