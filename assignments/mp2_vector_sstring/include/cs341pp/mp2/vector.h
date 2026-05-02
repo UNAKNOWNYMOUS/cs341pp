@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <iterator>
 #include <memory>
 #include <utility>
 
@@ -81,7 +82,8 @@ public:
 
   void pop_back() {
     assert(size_ > 0);
-    std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + size_--);
+    std::allocator_traits<std::allocator<T>>::destroy(alloc_,
+                                                      data_ + size_-- - 1);
   }
 
   void clear() {
@@ -233,6 +235,40 @@ private:
     other.data_ = nullptr;
     other.size_ = 0;
     other.capacity_ = 0;
+  }
+
+  void EnsureCapacityFor_(std::size_t desired_capacity) {
+    std::size_t new_capacity = IncreaseCapacity_(desired_capacity);
+    if (new_capacity != capacity_) {
+      CopyElements_(new_capacity);
+    }
+  }
+
+  std::size_t IncreaseCapacity_(std::size_t desired_capacity) {
+    std::size_t new_capacity{capacity_};
+    if (desired_capacity < kInitialCapacity || capacity_ < kInitialCapacity) {
+      new_capacity = kInitialCapacity;
+    } else {
+      while (new_capacity < desired_capacity) {
+        new_capacity *= 2;
+      }
+    }
+    return new_capacity;
+  }
+
+  void CopyElements_(std::size_t new_capacity) {
+    T *new_data{alloc_.allocate(new_capacity)};
+    for (std::size_t i{}; i < size_; ++i) {
+      std::allocator_traits<std::allocator<T>>::construct(alloc_, new_data + i,
+                                                          std::move(data_[i]));
+      std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
+    }
+    if (data_ != nullptr) {
+      alloc_.deallocate(data_, capacity_);
+      data_ = nullptr;
+    }
+    data_ = new_data;
+    capacity_ = new_capacity;
   }
 
   T *data_ = nullptr;
