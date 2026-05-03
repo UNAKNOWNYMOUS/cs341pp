@@ -17,7 +17,7 @@ namespace cs341pp::mp2 {
 
 template <typename T> class Vector {
 public:
-  // Implementing Rule of 6 (including Destructor)
+  // Implementing Rule of 5
   Vector() = default;
   ~Vector() { ClearAndFree_(); }
 
@@ -143,14 +143,15 @@ private:
   // Evaluated at compile time
   static constexpr std::size_t kInitialCapacity = 8;
 
-  template <typename U> void PushBackImpl_(U &&value) {
+  template <typename U>
+  void PushBackImpl_(U &&value) { // type is being deduced - forwarding refernce
     EnsureCapacityFor_(size_ + 1);
 
     // Add element
     std::allocator_traits<std::allocator<T>>::construct(
         alloc_, data_ + size_++,
         std::forward<U>(
-            value)); // perfect forwarding - using universal refernce
+            value)); // perfect forwarding - using universal/forwarding refernce
   }
 
   void ClearAndFree_() {
