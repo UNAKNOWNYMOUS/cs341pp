@@ -92,3 +92,39 @@ TEST(VectorAG, RandomizedOperationsMatchStdVectorOracle) {
     AssertEqual(v, ref);
   }
 }
+
+TEST(VectorExtra, ReserveLargeFromEmpty) {
+  mp2::Vector<int> v;
+  v.reserve(1000);
+  EXPECT_GE(v.capacity(), 1000u);
+  EXPECT_EQ(v.size(), 0u);
+}
+
+TEST(VectorExtra, ResizeLargeFromEmpty) {
+  mp2::Vector<int> v;
+  v.resize(20, 7);
+  ASSERT_EQ(v.size(), 20u);
+  EXPECT_GE(v.capacity(), 20u);
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    EXPECT_EQ(v[i], 7);
+  }
+}
+
+TEST(VectorExtra, ResizeToZero) {
+  mp2::Vector<int> v;
+  v.resize(3, 7);
+  v.resize(0);
+  EXPECT_EQ(v.size(), 0u);
+}
+
+TEST(VectorExtra, InsertSelfReference) {
+  mp2::Vector<std::string> v;
+  v.push_back("a");
+  v.push_back("b");
+  v.insert(1, v[0]);
+
+  ASSERT_EQ(v.size(), 3u);
+  EXPECT_EQ(v[0], "a");
+  EXPECT_EQ(v[1], "a");
+  EXPECT_EQ(v[2], "b");
+}

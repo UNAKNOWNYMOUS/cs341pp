@@ -49,7 +49,6 @@ public:
   bool empty() const { return size_ == 0; }
 
   // Overloading operator for mutable and immutable objects
-  // TODO: Maybe do an assert here??
   T &operator[](std::size_t i) { return data_[i]; }
   const T &operator[](std::size_t i) const { return data_[i]; }
 
@@ -65,9 +64,9 @@ public:
 
   // Iterators (will allow me to do a for each loop)
   T *begin() { return data_; }
-  T *end() { return data_ + size_; }
+  T *end() { return data_ == nullptr ? nullptr : data_ + size_; }
   const T *begin() const { return data_; }
-  const T *end() const { return data_ + size_; }
+  const T *end() const { return data_ == nullptr ? nullptr : data_ + size_; }
 
   void push_back(const T &value) { PushBackImpl_(value); }
   // Using 'std::move' because even though value is an r-value in C++ a name is
@@ -77,7 +76,8 @@ public:
   void pop_back() {
     assert(size_ > 0);
     std::allocator_traits<std::allocator<T>>::destroy(alloc_,
-                                                      data_ + size_-- - 1);
+                                                      data_ + size_ - 1);
+    --size_;
   }
 
   void clear() {
@@ -98,27 +98,28 @@ public:
   // TODO: Write comment explaining why using list initializer that assignment
   // r-value to l-value const ref i.e. it is efficient
   void resize(std::size_t new_size, const T &value = T{}) {
-    if (new_size < size_) {
-      if (!size_) {
-        for (std::size_t i{size_ - 1}; i >= new_size; --i) {
-          std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i);
-        }
-        size_ = new_size;
-      }
-    } else {
-      if (new_size > capacity_) {
-        EnsureCapacityFor_(new_size);
-      }
-      for (std::size_t i{size_}; i < new_size; ++i) {
-        std::allocator_traits<std::allocator<T>>::construct(alloc_, data_ + i,
-                                                            value);
-      }
-      size_ = new_size;
+    if (new_size > capacity_) {
+      EnsureCapacityFor_(new_size);
+    }
+    // smaller
+    while (size_ > new_size) {
+      std::allocator_traits<std::allocator<T>>::destroy(alloc_,
+                                                        data_ + size_ - 1);
+      --size_;
+    }
+    // bigger
+    while (size_ < new_size) {
+      std::allocator_traits<std::allocator<T>>::construct(
+          alloc_, data_ + size_++, value);
     }
   }
 
+  // Does not support r-value inserts
   void insert(std::size_t index, const T &value) {
     assert(index <= size_);
+    // AI said that value maybe be somewhere inside the vector and when I
+    // shift/destroy - this may effect the referenced object
+    const T temp_value = value;
     EnsureCapacityFor_(size_ + 1);
     for (std::size_t i{size_}; i > index; --i) {
       std::allocator_traits<std::allocator<T>>::construct(
@@ -126,7 +127,7 @@ public:
       std::allocator_traits<std::allocator<T>>::destroy(alloc_, data_ + i - 1);
     }
     std::allocator_traits<std::allocator<T>>::construct(alloc_, data_ + index,
-                                                        value);
+                                                        temp_value);
     ++size_;
   }
 
@@ -167,9 +168,11 @@ private:
   }
 
   void CopyFrom_(const Vector &other) {
-    data_ = alloc_.allocate(other.capacity_);
     size_ = other.size_;
     capacity_ = other.capacity_;
+    if (other.capacity_ != 0) {
+      data_ = alloc_.allocate(other.capacity_);
+    }
     for (std::size_t i{}; i < other.size_; ++i) {
       std::allocator_traits<std::allocator<T>>::construct(alloc_, data_ + i,
                                                           other[i]);
@@ -186,24 +189,23 @@ private:
   }
 
   void EnsureCapacityFor_(std::size_t desired_capacity) {
-    if (!capacity_) {
-      (desired_capacity <= kInitialCapacity)
-          ? CopyElements_(kInitialCapacity)
-          : CopyElements_(IncreaseCapacity_(desired_capacity));
-    } else if (desired_capacity > capacity_) {
-      CopyElements_(IncreaseCapacity_(desired_capacity));
+    if (desired_capacity <= capacity_) {
+      return;
     }
-  }
 
-  std::size_t IncreaseCapacity_(std::size_t desired_capacity) {
-    std::size_t new_capacity{capacity_};
+    std::size_t new_capacity = capacity_;
+    if (!new_capacity) {
+      new_capacity = kInitialCapacity;
+    }
+
     while (new_capacity < desired_capacity) {
       new_capacity *= 2;
     }
-    return new_capacity;
+
+    ReallocateTo_(new_capacity);
   }
 
-  void CopyElements_(std::size_t new_capacity) {
+  void ReallocateTo_(std::size_t new_capacity) {
     T *new_data{alloc_.allocate(new_capacity)};
     for (std::size_t i{}; i < size_; ++i) {
       std::allocator_traits<std::allocator<T>>::construct(alloc_, new_data + i,
