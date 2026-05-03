@@ -15,12 +15,9 @@
 
 namespace cs341pp::mp2 {
 
-// Vector Class:
-//
 template <typename T> class Vector {
 public:
   // Implementing Rule of 6 (including Destructor)
-
   Vector() = default;
   ~Vector() { ClearAndFree_(); }
 
@@ -69,6 +66,7 @@ public:
   const T *end() const { return data_ == nullptr ? nullptr : data_ + size_; }
 
   void push_back(const T &value) { PushBackImpl_(value); }
+
   // Using 'std::move' because even though value is an r-value in C++ a name is
   // an l-value so it will trigger a copy when passed elsewhere
   void push_back(T &&value) { PushBackImpl_(std::move(value)); }
