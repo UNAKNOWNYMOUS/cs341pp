@@ -93,8 +93,6 @@ public:
     }
   }
 
-  // TODO: Write comment explaining why using list initializer that assignment
-  // r-value to l-value const ref i.e. it is efficient
   void resize(std::size_t new_size, const T &value = T{}) {
     if (new_size > capacity_) {
       EnsureCapacityFor_(new_size);
@@ -112,7 +110,6 @@ public:
     }
   }
 
-  // Does not support r-value inserts
   void insert(std::size_t index, const T &value) {
     assert(index <= size_);
     // AI said that value maybe be somewhere inside the vector and when I
