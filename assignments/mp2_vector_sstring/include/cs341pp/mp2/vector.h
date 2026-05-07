@@ -49,7 +49,7 @@ public:
   T &operator[](std::size_t i) { return data_[i]; }
   const T &operator[](std::size_t i) const { return data_[i]; }
 
-  // Overloading operator for mutable and immutable objects
+  // Overloading method for mutable and immutable objects
   T &at(std::size_t i) {
     assert(i < size_);
     return data_[i];
